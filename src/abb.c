@@ -20,34 +20,31 @@ struct nodo_abb *crear_nodo(void *elemento)
  * Una vez la encuentre devuelve un puntero a su padre.
  */
 struct nodo_abb *buscar_fin(void *elemento, struct nodo_abb *actual,
-			    struct nodo_abb *anterior,
-			    abb_comparador comparador)
+			    struct nodo_abb *anterior, abb_comparador f)
 {
 	if (actual == NULL)
 		return anterior;
-	if (comparador(actual->elemento, elemento) >= 0)
-		return buscar_fin(elemento, actual->izquierda, actual,
-				  comparador);
+	if (f(actual->elemento, elemento) >= 0)
+		return buscar_fin(elemento, actual->izquierda, actual, f);
 	else
-		return buscar_fin(elemento, actual->derecha, actual,
-				  comparador);
+		return buscar_fin(elemento, actual->derecha, actual, f);
 }
 
 /*
  * Busca el elemento pasado por parametro en el arbol, si lo encuentra lo devuelve.
  * Si no lo encuentra devuelve NULL.
  */
-void *buscar_elemento(void *elemento, struct nodo_abb *actual,
-		      abb_comparador comparador)
+void *busqueda_binaria(void *elemento, struct nodo_abb *actual,
+		       abb_comparador f)
 {
 	if (actual == NULL)
 		return NULL;
-	if (comparador(elemento, actual->elemento) == 0)
+	if (f(elemento, actual->elemento) == 0)
 		return actual->elemento;
-	else if (comparador(elemento, actual->elemento) > 0)
-		return buscar_elemento(elemento, actual->derecha, comparador);
+	else if (f(actual->elemento, elemento) > 0)
+		return busqueda_binaria(elemento, actual->izquierda, f);
 	else
-		return buscar_elemento(elemento, actual->izquierda, comparador);
+		return busqueda_binaria(elemento, actual->derecha, f);
 }
 
 /*
@@ -66,21 +63,101 @@ void eliminar_nodos(struct nodo_abb *actual, void (*destructor)(void *))
 	return;
 }
 
-void recorrido_preorden(struct nodo_abb *actual, bool (*f)(void *, void *),
-			void *aux, size_t *n, bool *sigo)
+/*
+ * 
+ * 
+ */
+bool recorrido_preorden_it(struct nodo_abb *actual, bool (*f)(void *, void *),
+			   void *aux, size_t *n)
 {
-	if (actual == NULL || !(*sigo))
-		return;
+	if (actual == NULL)
+		return true;
+	(*n)++;
+	if (f(actual->elemento, aux)) {
+		if (recorrido_preorden_it(actual->izquierda, f, aux, n))
+			return recorrido_preorden_it(actual->derecha, f, aux,
+						     n);
+		return false;
+	}
+	return false;
+}
 
-	if (!f(actual->elemento, aux))
-		*sigo = false;
+/*
+ * 
+ * 
+ */
+bool recorrido_inorden_it(struct nodo_abb *actual, bool (*f)(void *, void *),
+			  void *aux, size_t *n)
+{
+	if (actual == NULL)
+		return true;
 
-	if (*sigo)
-		recorrido_preorden(actual->izquierda, f, aux, n, sigo);
-	if (*sigo)
-		recorrido_preorden(actual->derecha, f, aux, n, sigo);
-	if (*sigo)
+	if (recorrido_inorden_it(actual->izquierda, f, aux, n)) {
 		(*n)++;
+		if (f(actual->elemento, aux))
+			return recorrido_inorden_it(actual->derecha, f, aux, n);
+		return false;
+	}
+	return false;
+}
+
+/*
+ * 
+ * 
+ */
+bool recorrido_postorden_it(struct nodo_abb *actual, bool (*f)(void *, void *),
+			    void *aux, size_t *n)
+{
+	if (actual == NULL)
+		return true;
+
+	if (recorrido_postorden_it(actual->izquierda, f, aux, n)) {
+		if (recorrido_postorden_it(actual->derecha, f, aux, n)) {
+			(*n)++;
+			return f(actual->elemento, aux);
+		}
+		return false;
+	}
+	return false;
+}
+
+void cargar_vector_preorden(struct nodo_abb *actual, void **array, size_t tope,
+			    size_t *n)
+{
+	if (actual == NULL)
+		return;
+	if (*n == tope)
+		return;
+	array[*n] = actual->elemento;
+	(*n)++;
+	cargar_vector_preorden(actual->izquierda, array, tope, n);
+	cargar_vector_preorden(actual->derecha, array, tope, n);
+}
+
+void cargar_vector_inorden(struct nodo_abb *actual, void **array, size_t tope,
+			   size_t *n)
+{
+	if (actual == NULL)
+		return;
+	if (*n == tope)
+		return;
+	cargar_vector_inorden(actual->izquierda, array, tope, n);
+	array[*n] = actual->elemento;
+	(*n)++;
+	cargar_vector_inorden(actual->derecha, array, tope, n);
+}
+
+void cargar_vector_postorden(struct nodo_abb *actual, void **array, size_t tope,
+			     size_t *n)
+{
+	if (actual == NULL)
+		return;
+	cargar_vector_postorden(actual->izquierda, array, tope, n);
+	cargar_vector_postorden(actual->derecha, array, tope, n);
+	if (*n == tope)
+		return;
+	array[*n] = actual->elemento;
+	(*n)++;
 	return;
 }
 
@@ -108,7 +185,7 @@ abb_t *abb_insertar(abb_t *arbol, void *elemento)
 		buscar_fin(elemento, arbol->nodo_raiz, NULL, arbol->comparador);
 	if (ultimo == NULL)
 		arbol->nodo_raiz = nuevo;
-	else if (arbol->comparador(ultimo->elemento, nuevo->elemento) > 0)
+	else if (arbol->comparador(ultimo->elemento, elemento) >= 0)
 		ultimo->izquierda = nuevo;
 	else
 		ultimo->derecha = nuevo;
@@ -118,6 +195,8 @@ abb_t *abb_insertar(abb_t *arbol, void *elemento)
 
 void *abb_quitar(abb_t *arbol, void *elemento)
 {
+	if (arbol == NULL)
+		return NULL;
 	return elemento;
 }
 
@@ -128,7 +207,7 @@ void *abb_buscar(abb_t *arbol, void *elemento)
 	if (arbol->tamanio == 0)
 		return NULL;
 
-	return buscar_elemento(elemento, arbol->nodo_raiz, arbol->comparador);
+	return busqueda_binaria(elemento, arbol->nodo_raiz, arbol->comparador);
 }
 
 bool abb_vacio(abb_t *arbol)
@@ -168,10 +247,14 @@ size_t abb_con_cada_elemento(abb_t *arbol, abb_recorrido recorrido,
 		return 0;
 
 	size_t contador = 0;
-	bool sigo_recorriendo = true;
 	if (recorrido == PREORDEN)
-		recorrido_preorden(arbol->nodo_raiz, funcion, aux, &contador,
-				   &sigo_recorriendo);
+		recorrido_preorden_it(arbol->nodo_raiz, funcion, aux,
+				      &contador);
+	else if (recorrido == INORDEN)
+		recorrido_inorden_it(arbol->nodo_raiz, funcion, aux, &contador);
+	else if (recorrido == POSTORDEN)
+		recorrido_postorden_it(arbol->nodo_raiz, funcion, aux,
+				       &contador);
 
 	return contador;
 }
@@ -179,5 +262,20 @@ size_t abb_con_cada_elemento(abb_t *arbol, abb_recorrido recorrido,
 size_t abb_recorrer(abb_t *arbol, abb_recorrido recorrido, void **array,
 		    size_t tamanio_array)
 {
-	return 0;
+	if (arbol == NULL || array == NULL)
+		return 0;
+
+	size_t cantidad = 0;
+
+	if (recorrido == PREORDEN)
+		cargar_vector_preorden(arbol->nodo_raiz, array, tamanio_array,
+				       &cantidad);
+	else if (recorrido == INORDEN)
+		cargar_vector_inorden(arbol->nodo_raiz, array, tamanio_array,
+				      &cantidad);
+	else if (recorrido == POSTORDEN)
+		cargar_vector_postorden(arbol->nodo_raiz, array, tamanio_array,
+					&cantidad);
+
+	return cantidad;
 }
