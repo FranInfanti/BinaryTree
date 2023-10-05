@@ -5,6 +5,6 @@
 
 #define MAX_ARBOL 1500
 
-void mostrar_abb(abb_t* abb, void (*formateador)(void*));
+void mostrar_abb(abb_t *abb, void (*formateador)(void *));
 
 #endif // MOSTRAR_ABB_H_

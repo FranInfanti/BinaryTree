@@ -3,28 +3,14 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-/*
- * Devuelve true si el nodo apunta a NULL por derecha e izquierda.
- */
-bool es_hoja(struct nodo_abb *nodo)
-{
-	return !nodo->izquierda && !nodo->derecha;
-}
-
-/*
- * Devuelve true si el nodo apunta a NULL por derecha o izquierda.
- */
-bool tiene_un_hijo(struct nodo_abb *nodo)
-{
-	return !nodo->izquierda || !nodo->derecha;
-}
+enum CANT_HIJOS { HOJA, HIJO_UNICO, DOS_HIJOS };
 
 /*
  * Crea un nodo con el elemento pasado por parametro.
  */
-struct nodo_abb *crear_nodo(void *elemento)
+nodo_abb_t *crear_nodo(void *elemento)
 {
-	struct nodo_abb *nodo = calloc(1, sizeof(struct nodo_abb));
+	nodo_abb_t *nodo = calloc(1, sizeof(nodo_abb_t));
 	if (nodo == NULL)
 		return NULL;
 	nodo->elemento = elemento;
@@ -34,8 +20,8 @@ struct nodo_abb *crear_nodo(void *elemento)
 /*
  * Inserta un nuevo elemento en el arbol de modo que se siga cumpliendo que es un ABB.
  */
-void insertar_elemento(struct nodo_abb *nuevo, struct nodo_abb *actual,
-		       struct nodo_abb *anterior, abb_comparador f)
+void insertar_nodo(nodo_abb_t *nuevo, nodo_abb_t *actual, nodo_abb_t *anterior,
+		   abb_comparador f)
 {
 	if (actual == NULL) {
 		if (f(anterior->elemento, nuevo->elemento) >= 0)
@@ -45,17 +31,126 @@ void insertar_elemento(struct nodo_abb *nuevo, struct nodo_abb *actual,
 		return;
 	}
 	if (f(actual->elemento, nuevo->elemento) >= 0)
-		insertar_elemento(nuevo, actual->izquierda, actual, f);
+		insertar_nodo(nuevo, actual->izquierda, actual, f);
 	else
-		insertar_elemento(nuevo, actual->derecha, actual, f);
+		insertar_nodo(nuevo, actual->derecha, actual, f);
+}
+
+/*
+ * Determina la cantidad de hijos que tiene un nodo.
+ */
+enum CANT_HIJOS determinar_cantidad(nodo_abb_t *nodo)
+{
+	if (nodo->derecha == NULL && nodo->izquierda == NULL)
+		return HOJA;
+	else if (nodo->derecha == NULL || nodo->izquierda == NULL)
+		return HIJO_UNICO;
+	return DOS_HIJOS;
+}
+
+/*
+ * Modifica que el nodo que apuntaba a la hoja, ahora apunte a NULL. 
+ * Ademas devuelve el puntero nodo.
+ */
+void *eliminar_hoja(nodo_abb_t *nodo, void *elemento, abb_comparador f)
+{
+	if (f(nodo->elemento, elemento) > 0)
+		nodo->izquierda = NULL;
+	else
+		nodo->derecha = NULL;
+	return nodo;
+}
+
+/*
+ * Remplaza el nodo eliminar con el anterior. Ademas devuelve el nodo que 
+ * estaba siendo apuntado por eliminar.
+ */
+void *eliminar_un_hijo(nodo_abb_t *eliminar, nodo_abb_t *anterior,
+		       abb_comparador f)
+{
+	if (f(anterior->elemento, eliminar->elemento) > 0)
+		anterior->izquierda = !eliminar->derecha ? eliminar->izquierda :
+							   eliminar->derecha;
+	else
+		anterior->derecha = !eliminar->derecha ? eliminar->izquierda :
+							 eliminar->derecha;
+
+	return !eliminar->derecha ? eliminar->izquierda : eliminar->derecha;
+}
+
+/*
+ * Busca el predecesor inorden a partir de actual.
+ */
+void *buscar_predecesor(nodo_abb_t *actual, nodo_abb_t *anterior)
+{
+	if (actual->derecha == NULL) {
+		anterior->derecha = actual->izquierda;
+		return actual;
+	}
+	return buscar_predecesor(actual->derecha, actual);
+}
+
+/*
+ * Remplaza el nodo a eliminar con el predecesor inorden. Tambien devuelve el predecesor que remplazo 
+ * al nodo eliminar.
+ */
+void *eliminar_dos_hijos(nodo_abb_t *eliminar, nodo_abb_t *anterior,
+			 abb_comparador f)
+{
+	nodo_abb_t *predecesor =
+		buscar_predecesor(eliminar->izquierda, eliminar->izquierda);
+	predecesor->derecha = eliminar->derecha;
+	if (eliminar->izquierda != predecesor)
+		predecesor->izquierda = eliminar->izquierda;
+
+	if (f(anterior->elemento, eliminar->elemento) >= 0)
+		anterior->izquierda = predecesor;
+	else if (f(anterior->elemento, eliminar->elemento) < 0)
+		anterior->derecha = predecesor;
+	return predecesor;
+}
+
+/*
+ * Elimina el nodo que tiene el elemento que se quiere eliminar.
+ */
+void *eliminar_nodo(void *elemento, nodo_abb_t *eliminar, nodo_abb_t *anterior,
+		    abb_comparador f)
+{
+	void *ptr = NULL;
+	enum CANT_HIJOS cantidad = determinar_cantidad(eliminar);
+	if (cantidad == HOJA)
+		ptr = eliminar_hoja(anterior, elemento, f);
+	else if (cantidad == HIJO_UNICO)
+		ptr = eliminar_un_hijo(eliminar, anterior, f);
+	else
+		ptr = eliminar_dos_hijos(eliminar, anterior, f);
+	free(eliminar);
+	return ptr;
+}
+
+/*
+ * Busca y elimina el nodo que contiene el elemento.
+ */
+void *buscar_nodo(void *elemento, nodo_abb_t *actual, nodo_abb_t *anterior,
+		  abb_comparador f)
+{
+	if (actual == NULL)
+		return NULL;
+
+	if (f(actual->elemento, elemento) == 0)
+		return eliminar_nodo(elemento, actual, anterior, f);
+
+	if (f(actual->elemento, elemento) > 0)
+		return buscar_nodo(elemento, actual->izquierda, actual, f);
+
+	return buscar_nodo(elemento, actual->derecha, actual, f);
 }
 
 /*
  * Busca el elemento pasado por parametro en el arbol, si lo encuentra lo devuelve.
  * Si no lo encuentra devuelve NULL.
  */
-void *busqueda_binaria(void *elemento, struct nodo_abb *actual,
-		       abb_comparador f)
+void *busqueda_binaria(void *elemento, nodo_abb_t *actual, abb_comparador f)
 {
 	if (actual == NULL)
 		return NULL;
@@ -70,7 +165,7 @@ void *busqueda_binaria(void *elemento, struct nodo_abb *actual,
 /*
  * Recorre el arbol usando el recorrido Postorden y libera la memoria ocupada por cada nodo. 
  */
-void liberar_nodos(struct nodo_abb *actual, void (*destructor)(void *))
+void liberar_nodos(nodo_abb_t *actual, void (*destructor)(void *))
 {
 	if (actual == NULL)
 		return;
@@ -87,11 +182,12 @@ void liberar_nodos(struct nodo_abb *actual, void (*destructor)(void *))
  * Recorre el arbol en PREORDEN (NID) y le aplica a cada elemento del arbol la funcion f. 
  * Si esta devuelve false, se deja de recorrer y se devulve la cantidad de elementos a la que se le aplico la funcion.
  */
-bool iterar_preorden(struct nodo_abb *actual, bool (*f)(void *, void *),
-		     void *aux, size_t *n)
+bool iterar_preorden(nodo_abb_t *actual, bool (*f)(void *, void *), void *aux,
+		     size_t *n)
 {
 	if (actual == NULL)
 		return true;
+
 	(*n)++;
 	if (!f(actual->elemento, aux))
 		return false;
@@ -104,8 +200,8 @@ bool iterar_preorden(struct nodo_abb *actual, bool (*f)(void *, void *),
  * Recorre el arbol en INORDEN (IND) y le aplica a cada elemento del arbol la funcion f. 
  * Si esta devuelve false, se deja de recorrer y se devulve la cantidad de elementos a la que se le aplico la funcion.
  */
-bool iterar_inorden(struct nodo_abb *actual, bool (*f)(void *, void *),
-		    void *aux, size_t *n)
+bool iterar_inorden(nodo_abb_t *actual, bool (*f)(void *, void *), void *aux,
+		    size_t *n)
 {
 	if (actual == NULL)
 		return true;
@@ -122,8 +218,8 @@ bool iterar_inorden(struct nodo_abb *actual, bool (*f)(void *, void *),
  * Recorre el arbol en POSTORDEN (IDN) y le aplica a cada elemento del arbol la funcion f. 
  * Si esta devuelve false, se deja de recorrer y se devulve la cantidad de elementos a la que se le aplico la funcion.
  */
-bool iterar_postorden(struct nodo_abb *actual, bool (*f)(void *, void *),
-		      void *aux, size_t *n)
+bool iterar_postorden(nodo_abb_t *actual, bool (*f)(void *, void *), void *aux,
+		      size_t *n)
 {
 	if (actual == NULL)
 		return true;
@@ -139,14 +235,12 @@ bool iterar_postorden(struct nodo_abb *actual, bool (*f)(void *, void *),
 /*
  * Recorre el arbol en PREORDEN (NID) y carga en el array los elementos de este hasta llegar al tope del array.
  */
-void cargar_preorden(struct nodo_abb *actual, void **array, size_t tope,
-		     size_t *n)
+void cargar_preorden(nodo_abb_t *actual, void **array, size_t tope, size_t *n)
 {
 	if (actual == NULL)
 		return;
 	if (*n == tope)
 		return;
-
 	array[*n] = actual->elemento;
 	(*n)++;
 	cargar_preorden(actual->izquierda, array, tope, n);
@@ -156,15 +250,14 @@ void cargar_preorden(struct nodo_abb *actual, void **array, size_t tope,
 /*
  * Recorre el arbol en INORDEN (IND) y carga en el array los elementos de este hasta llegar al tope del array.
  */
-void cargar_inorden(struct nodo_abb *actual, void **array, size_t tope,
-		    size_t *n)
+void cargar_inorden(nodo_abb_t *actual, void **array, size_t tope, size_t *n)
 {
 	if (actual == NULL)
 		return;
-	if (*n == tope)
-		return;
 
 	cargar_inorden(actual->izquierda, array, tope, n);
+	if (*n == tope)
+		return;
 	array[*n] = actual->elemento;
 	(*n)++;
 	cargar_inorden(actual->derecha, array, tope, n);
@@ -173,8 +266,7 @@ void cargar_inorden(struct nodo_abb *actual, void **array, size_t tope,
 /*
  * Recorre el arbol en POSTORDEN (IDN) y carga en el array los elementos de este hasta llegar al tope del array.
  */
-void cargar_postorden(struct nodo_abb *actual, void **array, size_t tope,
-		      size_t *n)
+void cargar_postorden(nodo_abb_t *actual, void **array, size_t tope, size_t *n)
 {
 	if (actual == NULL)
 		return;
@@ -184,94 +276,9 @@ void cargar_postorden(struct nodo_abb *actual, void **array, size_t tope,
 
 	if (*n == tope)
 		return;
-
 	array[*n] = actual->elemento;
 	(*n)++;
 	return;
-}
-
-/*
- * 
- * 
- */
-void *eliminar_hoja(struct nodo_abb *nodo, void *elemento, abb_comparador f)
-{
-	if (f(nodo->elemento, elemento) > 0)
-		nodo->izquierda = NULL;
-	else
-		nodo->derecha = NULL;
-	return nodo;
-}
-
-/*
- * 
- * 
- */
-void *eliminar_con_un_hijo(struct nodo_abb *eliminar, struct nodo_abb *anterior,
-			   abb_comparador f)
-{
-	if (f(anterior->elemento, eliminar->elemento) > 0)
-		anterior->izquierda = !eliminar->derecha ? eliminar->izquierda :
-							   eliminar->derecha;
-	else
-		anterior->derecha = !eliminar->derecha ? eliminar->izquierda :
-							 eliminar->derecha;
-
-	return !eliminar->derecha ? eliminar->izquierda : eliminar->derecha;
-}
-
-void *buscar_predecesor(struct nodo_abb *actual, struct nodo_abb *anterior)
-{
-	if (actual->derecha == NULL) {
-		anterior->derecha = actual->izquierda;
-		return actual;
-	}
-	return buscar_predecesor(actual->derecha, actual);
-}
-
-/*
- * 
- * 
- */
-void *eliminar_con_hijos(struct nodo_abb *eliminar, struct nodo_abb *anterior,
-			 abb_comparador f)
-{
-	struct nodo_abb *predecesor =
-		buscar_predecesor(eliminar->izquierda, eliminar->izquierda);
-	predecesor->derecha = eliminar->derecha;
-	if (eliminar->izquierda != predecesor)
-		predecesor->izquierda = eliminar->izquierda;
-
-	if (f(anterior->elemento, eliminar->elemento) >= 0)
-		anterior->izquierda = predecesor;
-	else if (f(anterior->elemento, eliminar->elemento) < 0)
-		anterior->derecha = predecesor;
-	return predecesor;
-}
-
-void *eliminar_elemento(void *elemento, struct nodo_abb *eliminar,
-			struct nodo_abb *anterior, abb_comparador f)
-{
-	if (eliminar == NULL)
-		return NULL;
-
-	if (f(eliminar->elemento, elemento) == 0) {
-		void *ptr = NULL;
-		if (es_hoja(eliminar))
-			ptr = eliminar_hoja(anterior, elemento, f);
-		else if (tiene_un_hijo(eliminar))
-			ptr = eliminar_con_un_hijo(eliminar, anterior, f);
-		else
-			ptr = eliminar_con_hijos(eliminar, anterior, f);
-		free(eliminar);
-		return ptr;
-	}
-
-	if (f(eliminar->elemento, elemento) > 0)
-		return eliminar_elemento(elemento, eliminar->izquierda,
-					 eliminar, f);
-
-	return eliminar_elemento(elemento, eliminar->derecha, eliminar, f);
 }
 
 abb_t *abb_crear(abb_comparador comparador)
@@ -290,13 +297,12 @@ abb_t *abb_insertar(abb_t *arbol, void *elemento)
 	if (arbol == NULL)
 		return NULL;
 
-	struct nodo_abb *nuevo = crear_nodo(elemento);
+	nodo_abb_t *nuevo = crear_nodo(elemento);
 	if (nuevo == NULL)
 		return NULL;
 
 	if (arbol->tamanio != 0)
-		insertar_elemento(nuevo, arbol->nodo_raiz, arbol->nodo_raiz,
-				  arbol->comparador);
+		insertar_nodo(nuevo, arbol->nodo_raiz, NULL, arbol->comparador);
 	else
 		arbol->nodo_raiz = nuevo;
 	arbol->tamanio++;
@@ -310,21 +316,19 @@ void *abb_quitar(abb_t *arbol, void *elemento)
 	if (arbol->tamanio == 0)
 		return NULL;
 
-	bool raiz = arbol->comparador(arbol->nodo_raiz->elemento, elemento) ==
-				    0 ?
-			    true :
-			    false;
+	bool es_la_raiz = false;
+	if (arbol->comparador(arbol->nodo_raiz->elemento, elemento) == 0)
+		es_la_raiz = true;
 
-	void *aux = eliminar_elemento(elemento, arbol->nodo_raiz,
-				      arbol->nodo_raiz, arbol->comparador);
+	void *aux = buscar_nodo(elemento, arbol->nodo_raiz, arbol->nodo_raiz,
+				arbol->comparador);
 	if (aux == NULL)
 		return NULL;
 
 	arbol->tamanio--;
-
 	if (arbol->tamanio == 0)
 		arbol->nodo_raiz = NULL;
-	else if (raiz)
+	else if (es_la_raiz)
 		arbol->nodo_raiz = aux;
 
 	return elemento;

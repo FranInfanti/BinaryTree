@@ -1,5 +1,14 @@
 #include "pa2m.h"
 #include "src/abb.h"
+#include "mostrar_abb.h"
+#include "src/abb_estructura_privada.h"
+
+void formateador(void *nodo_)
+{
+	nodo_abb_t *nodo = nodo_;
+	int i = *(int *)nodo->elemento;
+	printf("%2d", i);
+}
 
 int comparador(void *e1, void *e2)
 {
@@ -15,26 +24,23 @@ int comparador(void *e1, void *e2)
 
 void destructor(void *elemento)
 {
-	int *numero = elemento;
-	printf(" (%i) ", *numero);
+	return;
 }
 
 bool sigo_recorriendo_sin_corte(void *e1, void *e2)
 {
-	destructor(e1);
 	return true;
 }
 
 bool sigo_recorriendo_con_corte(void *e1, void *e2)
 {
-	destructor(e1);
 	return e1 != e2;
 }
 
 void se_puede_crear_un_arbol()
 {
 	abb_t *arbol = abb_crear(comparador);
-	pa2m_afirmar(arbol != NULL, "Puedo crear un arbol");
+	pa2m_afirmar(arbol != NULL, "Puedo crear un arbol :)");
 	abb_destruir(arbol);
 }
 
@@ -57,7 +63,7 @@ void no_se_puede_insertar_elementos_en_un_arbol_nulo()
 {
 	abb_t *arbol = NULL;
 	pa2m_afirmar(abb_insertar(arbol, NULL) == NULL,
-		     "No se puede insertar elementos en una lista null");
+		     "No se puede insertar elementos en un arbol nulo");
 }
 
 void podemos_insertar_un_elemento()
@@ -75,45 +81,157 @@ void podemos_insertar_un_elemento()
 void podemos_insertar_varios_elementos()
 {
 	abb_t *arbol = abb_crear(comparador);
-	int numeros[] = { 15, 21, 12, 15, 24, 7,  14, 29, 5,  20, 23, 9, 11,
-			  17, 20, 19, 27, 18, 30, 4,  6,  40, 28, 39, 0, 60,
-			  50, 1,  51, 2,  59, 3,  55, 25, 26, 75, 52 };
+	int numeros[] = { 15, 12, 21, 7, 14, 27, 24, 6, 23, 25, 26, 8, 15 };
 	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
-	bool son_correctos = true;
-	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++) {
-		if (abb_buscar(arbol, &numeros[i]) == NULL)
-			son_correctos = false;
-	}
-	pa2m_afirmar(son_correctos,
-		     "Los elementos insertados son correctos :)");
 	pa2m_afirmar(abb_tamanio(arbol) == sizeof(numeros) / sizeof(int),
 		     "La cantidad de elementos agregada es correcta");
-	abb_destruir_todo(arbol, NULL);
+	abb_destruir(arbol);
 }
 
-void prueba_insercion_masiva()
+void no_puedo_borrar_de_un_arbol_nulo()
+{
+	abb_t *arbol = NULL;
+	pa2m_afirmar(abb_quitar(arbol, NULL) == NULL,
+		     "No puedo eliminar el elemento de un arbol nulo");
+}
+
+void no_puedo_borrar_un_elemento_de_un_arbol_vacio()
 {
 	abb_t *arbol = abb_crear(comparador);
-	int numeros[] = { 50, 48, 21, 87,  5,  2,  0,	63,  52, 47, 45,
-			  19, 20, 4,  43,  51, 16, 78,	102, 32, 65, 8,
-			  10, 30, 17, 19,  57, 56, 96,	100, 23, 24, 26,
-			  27, 10, 11, 2,   78, 75, 76,	44,  43, 33, 22,
-			  21, 29, 91, 55,  66, 76, 111, 0,   15, 17, 18,
-			  87, 50, 17, 555, 23, 61, 30,	35,  39, 48, 57,
-			  67, 70, 52, 77,  78, 90, 101, 105 };
-	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	pa2m_afirmar(abb_quitar(arbol, NULL) == NULL,
+		     "No puedo eliminar el elemento de un arbol vacio");
+	abb_destruir(arbol);
+}
+
+void no_puedo_borrar_un_elemento_que_no_existe()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 12, 21, 23, 7, 14, 15, 6 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
-	bool son_correctos = true;
-	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++) {
-		if (abb_buscar(arbol, &numeros[i]) == NULL)
-			son_correctos = false;
-	}
-	pa2m_afirmar(son_correctos,
-		     "Los elementos insertados son correctos :)");
+	int numero = 9;
+	pa2m_afirmar(abb_quitar(arbol, &numero) == NULL,
+		     "No puedo borrar un elemento que no existe");
 	pa2m_afirmar(abb_tamanio(arbol) == sizeof(numeros) / sizeof(int),
-		     "La cantidad de elementos agregada es correcta");
+		     "El tamaño del arbol es correcto");
+	abb_destruir(arbol);
+}
+
+void puedo_borrar_un_elemento_sin_hijos()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 12, 21, 23, 7, 14, 15, 6, 8 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+
+	pa2m_afirmar(abb_quitar(arbol, &numeros[8]) == &numeros[8],
+		     "Puedo borrar un elemento sin hijos corretamente");
+	pa2m_afirmar(abb_tamanio(arbol) == 8, "El tamaño es correcto");
+	pa2m_afirmar(abb_buscar(arbol, &numeros[8]) == NULL,
+		     "Busco el elemento eliminado y no lo encuentro");
+
+	pa2m_afirmar(abb_quitar(arbol, &numeros[7]) == &numeros[7],
+		     "Puedo borrar otro elemento sin hijos correctamente");
+	pa2m_afirmar(abb_tamanio(arbol) == 7, "El tamaño es correcto");
+	pa2m_afirmar(abb_buscar(arbol, &numeros[7]) == NULL,
+		     "Busco el elemento borrado pero no lo encuentro");
+
+	abb_destruir(arbol);
+}
+
+void puedo_borrar_un_elemento_con_un_hijo()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 12, 21, 27, 7, 14, 6, 8, 24, 25, 26, 23 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	size_t posicion = 0;
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++) {
+		if (numeros[i] == 21)
+			posicion = i;
+	}
+
+	pa2m_afirmar(abb_quitar(arbol, &numeros[posicion]) ==
+			     &numeros[posicion],
+		     "Puedo borrar un elemento con un hijo correctamente");
+	pa2m_afirmar(abb_tamanio(arbol) == 11, "El tamaño es correcto");
+	pa2m_afirmar(abb_buscar(arbol, &numeros[posicion]) == NULL,
+		     "Busco el elemento eliminado y no lo encuentro");
 	abb_destruir_todo(arbol, destructor);
+}
+
+void puedo_borrar_un_elemento_con_dos_hijos()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 12, 21, 27, 7, 14, 6, 8, 24, 25, 26, 23 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	size_t posicion = 0;
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++) {
+		if (numeros[i] == 24)
+			posicion = i;
+	}
+	pa2m_afirmar(abb_quitar(arbol, &numeros[posicion]) ==
+			     &numeros[posicion],
+		     "Se puede eliminar un elemento con dos hijos :)");
+	abb_destruir(arbol);
+}
+
+void puedo_borrar_otro_elemento_con_dos_hijos()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 10, 13, 7, 6, 9, 8 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	size_t posicion = 0;
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++) {
+		if (numeros[i] == 10)
+			posicion = i;
+	}
+	pa2m_afirmar(abb_quitar(arbol, &numeros[posicion]) ==
+			     &numeros[posicion],
+		     "Se puede eliminar un elemento con dos hijos :)");
+	abb_destruir(arbol);
+}
+
+void puedo_borrar_la_raiz()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 12, 21, 27, 7, 14, 6, 8, 24, 25, 26, 23, 13 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	pa2m_afirmar(abb_quitar(arbol, &numeros[0]) == &numeros[0],
+		     "Se puede borrar la raiz con dos hijos correctamente :)");
+	abb_destruir(arbol);
+}
+
+void puedo_borrar_la_raiz_con_un_hijo()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 15 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	pa2m_afirmar(abb_quitar(arbol, &numeros[0]) == &numeros[0],
+		     "Se puede borrar la raiz con un hijo correctamente :)");
+	abb_destruir(arbol);
+}
+
+void puedo_borrar_la_raiz_sin_hijos()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15 };
+	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	size_t posicion = 0;
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++) {
+		if (numeros[i] == 15)
+			posicion = i;
+	}
+	pa2m_afirmar(abb_quitar(arbol, &numeros[posicion]) ==
+			     &numeros[posicion],
+		     "Se puede borrar la raiz sin hijos :)");
+	abb_destruir(arbol);
 }
 
 void no_puedo_buscar_en_un_arbol_nulo()
@@ -135,22 +253,12 @@ void puedo_buscar_un_elemento_que_existe()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 15, 23, 7, 14 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
-	pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[0]) == numeros[0],
-		     "Busco un elemento que existe y lo encuentro");
-	pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[1]) == numeros[1],
-		     "Busco un elemento que existe y lo encuentro");
-	pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[2]) == numeros[2],
-		     "Busco un elemento que existe y lo encuentro");
-	pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[3]) == numeros[3],
-		     "Busco un elemento que existe y lo encuentro");
-	pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[4]) == numeros[4],
-		     "Busco un elemento que existe y lo encuentro");
-	pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[5]) == numeros[5],
-		     "Busco un elemento que existe y lo encuentro");
-	pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[6]) == numeros[6],
-		     "Busco un elemento que existe y lo encuentro");
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		pa2m_afirmar(*(int *)abb_buscar(arbol, &numeros[i]) ==
+				     numeros[i],
+			     "Busco un elemento que existe y lo encuentro");
 	abb_destruir(arbol);
 }
 
@@ -158,7 +266,7 @@ void busco_un_elemento_que_no_existe_y_no_lo_encuentro()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 15, 23, 7, 14 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	int numero = 77;
 	pa2m_afirmar(abb_buscar(arbol, &numero) == NULL,
@@ -166,22 +274,15 @@ void busco_un_elemento_que_no_existe_y_no_lo_encuentro()
 	abb_destruir(arbol);
 }
 
-void prueba_destructor()
+void busco_el_elemento_de_la_raiz()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 15, 23, 7, 14 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
-	abb_destruir_todo(arbol, destructor);
-}
-
-void prueba_destructor_nulo()
-{
-	abb_t *arbol = abb_crear(comparador);
-	int numeros[] = { 15, 21, 12, 15, 23, 7, 14 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
-		arbol = abb_insertar(arbol, &numeros[i]);
-	abb_destruir_todo(arbol, NULL);
+	pa2m_afirmar(abb_buscar(arbol, &numeros[0]) == &numeros[0],
+		     "Busco el elemento de la raiz y lo encuentro");
+	abb_destruir(arbol);
 }
 
 void no_se_recorre_un_arbol_nulo()
@@ -223,7 +324,7 @@ void prueba_recorrido_preorden_todo_el_arbol()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_con_cada_elemento(arbol, PREORDEN,
 					   sigo_recorriendo_sin_corte, NULL) ==
@@ -236,7 +337,7 @@ void prueba_recorrido_preorden_algunos_elementos()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_con_cada_elemento(arbol, PREORDEN,
 					   sigo_recorriendo_con_corte,
@@ -249,7 +350,7 @@ void prueba_recorrido_inorder_todo_el_arbol()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_con_cada_elemento(arbol, INORDEN,
 					   sigo_recorriendo_sin_corte, NULL) ==
@@ -262,7 +363,7 @@ void prueba_recorrido_inorder_algunos_elementos()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_con_cada_elemento(arbol, INORDEN,
 					   sigo_recorriendo_con_corte,
@@ -275,7 +376,7 @@ void prueba_recorrido_postorden_todo_el_arbol()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_con_cada_elemento(arbol, POSTORDEN,
 					   sigo_recorriendo_sin_corte, NULL) ==
@@ -288,7 +389,7 @@ void prueba_recorrido_postorden_algunos_elementos()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_con_cada_elemento(arbol, POSTORDEN,
 					   sigo_recorriendo_con_corte,
@@ -310,7 +411,7 @@ void no_se_puede_cargar_en_un_array_nulo()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_recorrer(arbol, PREORDEN, NULL, 0) == 0,
 		     "No se puede cargar de un array nulo");
@@ -331,7 +432,7 @@ void cargar_array_con_todos_los_elementos_recorrido_preorden()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	void **array =
 		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
@@ -340,9 +441,6 @@ void cargar_array_con_todos_los_elementos_recorrido_preorden()
 			     sizeof(numeros) / sizeof(int)) ==
 			sizeof(numeros) / sizeof(int),
 		"Se cargaron todos los elementos del arbol en el array correctamente, en PREORDEN");
-	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
-		printf(" [%i] ", *(int *)array[i]);
-	printf("\n");
 	free(array);
 	abb_destruir(arbol);
 }
@@ -351,15 +449,12 @@ void cargar_array_con_algunos_elementos_recorrido_preorden()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	void **array = calloc(1, 20 * sizeof(void *));
 	pa2m_afirmar(
 		abb_recorrer(arbol, PREORDEN, array, 3) == 3,
 		"Se cargaron algunos elementos del arbol en el array correctamente, en PREORDEN");
-	for (size_t i = 0; i < 3; i++)
-		printf(" [%i] ", *(int *)array[i]);
-	printf("\n");
 	free(array);
 	abb_destruir(arbol);
 }
@@ -368,7 +463,7 @@ void cargar_array_con_todos_los_elementos_recorrido_postorden()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	void **array =
 		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
@@ -377,9 +472,6 @@ void cargar_array_con_todos_los_elementos_recorrido_postorden()
 			     sizeof(numeros) / sizeof(int)) ==
 			sizeof(numeros) / sizeof(int),
 		"Se cargaron todos los elementos del arbol en el array correctamente, en POSTORDEN");
-	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
-		printf(" [%i] ", *(int *)array[i]);
-	printf("\n");
 	free(array);
 	abb_destruir(arbol);
 }
@@ -388,16 +480,45 @@ void cargar_array_con_algunos_elementos_recorrido_postorden()
 {
 	abb_t *arbol = abb_crear(comparador);
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
-	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	void **array =
 		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
 	pa2m_afirmar(
 		abb_recorrer(arbol, POSTORDEN, array, 2) == 2,
 		"Se cargaron algunos elementos del arbol en el array correctamente, en POSTORDEN");
-	for (size_t i = 0; i < 2; i++)
-		printf(" [%i] ", *(int *)array[i]);
-	printf("\n");
+	free(array);
+	abb_destruir(arbol);
+}
+
+void cargar_array_con_todos_los_elementos_recorrido_inorden()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 21, 17, 23, 4, 14, 15 };
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	void **array =
+		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
+	pa2m_afirmar(
+		abb_recorrer(arbol, INORDEN, array,
+			     sizeof(numeros) / sizeof(int)) ==
+			sizeof(numeros) / sizeof(int),
+		"Se cargaron todos los elementos del arbol en el array correctamente, en INORDEN");
+	free(array);
+	abb_destruir(arbol);
+}
+
+void cargar_array_con_algunos_elementos_recorrido_inorden()
+{
+	abb_t *arbol = abb_crear(comparador);
+	int numeros[] = { 15, 21, 2, 23, 7, 14, 15, 8 };
+	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
+		arbol = abb_insertar(arbol, &numeros[i]);
+	void **array =
+		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
+	pa2m_afirmar(
+		abb_recorrer(arbol, POSTORDEN, array, 5) == 5,
+		"Se cargaron algunos elementos del arbol en el array correctamente, en INORDEN");
 	free(array);
 	abb_destruir(arbol);
 }
@@ -413,17 +534,25 @@ int main()
 	no_se_puede_insertar_elementos_en_un_arbol_nulo();
 	podemos_insertar_un_elemento();
 	podemos_insertar_varios_elementos();
-	prueba_insercion_masiva();
+
+	pa2m_nuevo_grupo("Pruebas eliminar elementos");
+	no_puedo_borrar_de_un_arbol_nulo();
+	no_puedo_borrar_un_elemento_de_un_arbol_vacio();
+	no_puedo_borrar_un_elemento_que_no_existe();
+	puedo_borrar_un_elemento_sin_hijos();
+	puedo_borrar_un_elemento_con_un_hijo();
+	puedo_borrar_un_elemento_con_dos_hijos();
+	puedo_borrar_otro_elemento_con_dos_hijos();
+	puedo_borrar_la_raiz();
+	puedo_borrar_la_raiz_con_un_hijo();
+	puedo_borrar_la_raiz_sin_hijos();
 
 	pa2m_nuevo_grupo("Pruebas de busqueda");
 	no_puedo_buscar_en_un_arbol_nulo();
 	no_puedo_buscar_en_un_arbol_vacio();
 	puedo_buscar_un_elemento_que_existe();
 	busco_un_elemento_que_no_existe_y_no_lo_encuentro();
-
-	pa2m_nuevo_grupo("Pruebas de destructor");
-	prueba_destructor();
-	prueba_destructor_nulo();
+	busco_el_elemento_de_la_raiz();
 
 	pa2m_nuevo_grupo("Pruebas recorridos");
 	no_se_recorre_un_arbol_nulo();
@@ -445,6 +574,8 @@ int main()
 	cargar_array_con_algunos_elementos_recorrido_preorden();
 	cargar_array_con_todos_los_elementos_recorrido_postorden();
 	cargar_array_con_algunos_elementos_recorrido_postorden();
+	cargar_array_con_todos_los_elementos_recorrido_inorden();
+	cargar_array_con_algunos_elementos_recorrido_inorden();
 
 	return pa2m_mostrar_reporte();
 }
