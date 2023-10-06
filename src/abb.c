@@ -174,7 +174,7 @@ bool iterar_preorden(nodo_abb_t *actual, bool (*f)(void *, void *), void *aux,
  * Recorre el arbol en INORDEN (IND) y le aplica a cada elemento del arbol la funcion f. 
  * Si esta devuelve false, se deja de recorrer y se devulve la cantidad de elementos a la que se le aplico la funcion.
  */
-bool iterar_inorden(nodo_abb_t *actual, bool (*f)(void *, void *), void *aux,
+bool iterar_inorden(nodo_abb_t *actual, bool (*f)(void*, void*), void *aux,
 		    size_t *n)
 {
 	if (actual == NULL)
