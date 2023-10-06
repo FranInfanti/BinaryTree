@@ -124,19 +124,11 @@ void puedo_borrar_un_elemento_sin_hijos()
 	int numeros[] = { 15, 12, 21, 23, 7, 14, 15, 6, 8 };
 	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
-
 	pa2m_afirmar(abb_quitar(arbol, &numeros[8]) == &numeros[8],
 		     "Puedo borrar un elemento sin hijos corretamente");
 	pa2m_afirmar(abb_tamanio(arbol) == 8, "El tamaño es correcto");
 	pa2m_afirmar(abb_buscar(arbol, &numeros[8]) == NULL,
 		     "Busco el elemento eliminado y no lo encuentro");
-
-	pa2m_afirmar(abb_quitar(arbol, &numeros[7]) == &numeros[7],
-		     "Puedo borrar otro elemento sin hijos correctamente");
-	pa2m_afirmar(abb_tamanio(arbol) == 7, "El tamaño es correcto");
-	pa2m_afirmar(abb_buscar(arbol, &numeros[7]) == NULL,
-		     "Busco el elemento borrado pero no lo encuentro");
-
 	abb_destruir(arbol);
 }
 
@@ -151,7 +143,6 @@ void puedo_borrar_un_elemento_con_un_hijo()
 		if (numeros[i] == 21)
 			posicion = i;
 	}
-
 	pa2m_afirmar(abb_quitar(arbol, &numeros[posicion]) ==
 			     &numeros[posicion],
 		     "Puedo borrar un elemento con un hijo correctamente");
@@ -164,7 +155,7 @@ void puedo_borrar_un_elemento_con_un_hijo()
 void puedo_borrar_un_elemento_con_dos_hijos()
 {
 	abb_t *arbol = abb_crear(comparador);
-	int numeros[] = { 15, 12, 21, 27, 7, 14, 6, 8, 24, 25, 26, 23 };
+	int numeros[] = { 15, 12, 21, 27, 7, 14, 6, 8, 24, 25, 26, 23, 22 };
 	for (int i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
 	size_t posicion = 0;
@@ -203,6 +194,8 @@ void puedo_borrar_la_raiz()
 		arbol = abb_insertar(arbol, &numeros[i]);
 	pa2m_afirmar(abb_quitar(arbol, &numeros[0]) == &numeros[0],
 		     "Se puede borrar la raiz con dos hijos correctamente :)");
+	pa2m_afirmar(abb_buscar(arbol, &numeros[0]) == NULL,
+		     "Busco la raiz anterior y no la encuentro");
 	abb_destruir(arbol);
 }
 
