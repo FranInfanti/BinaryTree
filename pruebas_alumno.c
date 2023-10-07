@@ -3,6 +3,11 @@
 #include "mostrar_abb.h"
 #include "src/abb_estructura_privada.h"
 
+typedef struct array {
+	void **array;
+	size_t i;
+} array_t;
+
 void formateador(void *nodo_)
 {
 	nodo_abb_t *nodo = nodo_;
@@ -29,12 +34,18 @@ void destructor(void *elemento)
 
 bool sigo_recorriendo_sin_corte(void *e1, void *e2)
 {
+	array_t *v = e2;
+	v->array[v->i] = e1;
+	(v->i)++;
 	return true;
 }
 
 bool sigo_recorriendo_con_corte(void *e1, void *e2)
 {
-	return e1 != e2;
+	array_t *v = e2;
+	v->array[v->i] = e1;
+	(v->i)++;
+	return v->i != 3;
 }
 
 void se_puede_crear_un_arbol()
@@ -319,23 +330,52 @@ void prueba_recorrido_preorden_todo_el_arbol()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+
+	int resultado[] = { 15, 12, 7, 14, 15, 21, 23 };
+	array_t *str = calloc(1, sizeof(array_t));
+	str->array = malloc((sizeof(numeros) / sizeof(int)) * sizeof(void *));
+
+	bool es_correcto = true;
 	pa2m_afirmar(abb_con_cada_elemento(arbol, PREORDEN,
-					   sigo_recorriendo_sin_corte, NULL) ==
+					   sigo_recorriendo_sin_corte, str) ==
 			     sizeof(numeros) / sizeof(int),
-		     "Se recorrieron todos los elementos en preorden");
+		     "Se recorrieron todos los elementos esperados");
+
+	for (size_t n = 0; n < sizeof(numeros) / sizeof(int) && es_correcto;
+	     n++)
+		es_correcto = resultado[n] == *(int *)str->array[n] ? true :
+								      false;
+
+	pa2m_afirmar(es_correcto, "Se recorrieron los elementos en PREORDEN");
+	free(str->array);
+	free(str);
 	abb_destruir(arbol);
 }
 
 void prueba_recorrido_preorden_algunos_elementos()
 {
 	abb_t *arbol = abb_crear(comparador);
-	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
+	int numeros[] = { 15, 12, 7, 14, 15, 21, 23 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+
+	int resultado[] = { 15, 12, 7 };
+	array_t *str = calloc(1, sizeof(array_t));
+	str->array = malloc((sizeof(numeros) / sizeof(int)) * sizeof(void *));
+
+	bool es_correcto = true;
 	pa2m_afirmar(abb_con_cada_elemento(arbol, PREORDEN,
 					   sigo_recorriendo_con_corte,
-					   &numeros[4]) == 3,
-		     "Se recorrieron algunos elementos en preorden");
+					   str) == 3,
+		     "Se recorrieron algunos elementos");
+
+	for (size_t n = 0; n < 3 && es_correcto; n++)
+		es_correcto = resultado[n] == *(int *)str->array[n] ? true :
+								      false;
+
+	pa2m_afirmar(es_correcto, "Se recorrieron los elementos en PREORDEN");
+	free(str->array);
+	free(str);
 	abb_destruir(arbol);
 }
 
@@ -345,10 +385,25 @@ void prueba_recorrido_inorder_todo_el_arbol()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+
+	int resultado[] = { 7, 12, 14, 15, 15, 21, 23 };
+	array_t *str = calloc(1, sizeof(array_t));
+	str->array = malloc((sizeof(numeros) / sizeof(int)) * sizeof(void *));
+
+	bool es_correcto = true;
 	pa2m_afirmar(abb_con_cada_elemento(arbol, INORDEN,
-					   sigo_recorriendo_sin_corte, NULL) ==
+					   sigo_recorriendo_sin_corte, str) ==
 			     sizeof(numeros) / sizeof(int),
-		     "Se recorrieron todos los elementos en inorden");
+		     "Se recorrieron todos los elementos esperados");
+
+	for (size_t n = 0; n < sizeof(numeros) / sizeof(int) && es_correcto;
+	     n++)
+		es_correcto = resultado[n] == *(int *)str->array[n] ? true :
+								      false;
+
+	pa2m_afirmar(es_correcto, "Se recorrieron los elementos en INORDEN");
+	free(str->array);
+	free(str);
 	abb_destruir(arbol);
 }
 
@@ -358,10 +413,24 @@ void prueba_recorrido_inorder_algunos_elementos()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+
+	int resultado[] = { 7, 12, 14 };
+	array_t *str = calloc(1, sizeof(array_t));
+	str->array = malloc((sizeof(numeros) / sizeof(int)) * sizeof(void *));
+
+	bool es_correcto = true;
 	pa2m_afirmar(abb_con_cada_elemento(arbol, INORDEN,
 					   sigo_recorriendo_con_corte,
-					   &numeros[1]) == 6,
-		     "Se recorrieron algunos elementos en inorden");
+					   str) == 3,
+		     "Se recorrieron algunos elementos");
+
+	for (size_t n = 0; n < 3 && es_correcto; n++)
+		es_correcto = resultado[n] == *(int *)str->array[n] ? true :
+								      false;
+
+	pa2m_afirmar(es_correcto, "Se recorrieron los elementos en INORDEN");
+	free(str->array);
+	free(str);
 	abb_destruir(arbol);
 }
 
@@ -371,10 +440,25 @@ void prueba_recorrido_postorden_todo_el_arbol()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+
+	int resultado[] = { 7, 15, 14, 12, 23, 21, 15 };
+	array_t *str = calloc(1, sizeof(array_t));
+	str->array = malloc((sizeof(numeros) / sizeof(int)) * sizeof(void *));
+
+	bool es_correcto = true;
 	pa2m_afirmar(abb_con_cada_elemento(arbol, POSTORDEN,
-					   sigo_recorriendo_sin_corte, NULL) ==
+					   sigo_recorriendo_sin_corte, str) ==
 			     sizeof(numeros) / sizeof(int),
-		     "Se recorrieron todos los elementos en postorden");
+		     "Se recorrieron todos los elementos");
+
+	for (size_t n = 0; n < sizeof(numeros) / sizeof(int) && es_correcto;
+	     n++)
+		es_correcto = resultado[n] == *(int *)str->array[n] ? true :
+								      false;
+
+	pa2m_afirmar(es_correcto, "Se recorrieron los elementos en POSTORDEN");
+	free(str->array);
+	free(str);
 	abb_destruir(arbol);
 }
 
@@ -384,10 +468,24 @@ void prueba_recorrido_postorden_algunos_elementos()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+
+	int resultado[] = { 7, 15, 14 };
+	array_t *str = calloc(1, sizeof(array_t));
+	str->array = malloc((sizeof(numeros) / sizeof(int)) * sizeof(void *));
+
+	bool es_correcto = true;
 	pa2m_afirmar(abb_con_cada_elemento(arbol, POSTORDEN,
 					   sigo_recorriendo_con_corte,
-					   &numeros[5]) == 3,
-		     "Se recorrieron todos los elementos en postorden");
+					   str) == 3,
+		     "Se recorrieron algunos elementos");
+
+	for (size_t n = 0; n < 3 && es_correcto; n++)
+		es_correcto = resultado[n] == *(int *)str->array[n] ? true :
+								      false;
+
+	pa2m_afirmar(es_correcto, "Se recorrieron los elementos en POSTORDEN");
+	free(str->array);
+	free(str);
 	abb_destruir(arbol);
 }
 
@@ -427,13 +525,23 @@ void cargar_array_con_todos_los_elementos_recorrido_preorden()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+	int resultado[] = { 15, 12, 7, 14, 15, 21, 23 };
+
 	void **array =
 		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
-	pa2m_afirmar(
-		abb_recorrer(arbol, PREORDEN, array,
-			     sizeof(numeros) / sizeof(int)) ==
-			sizeof(numeros) / sizeof(int),
-		"Se cargaron todos los elementos del arbol en el array correctamente, en PREORDEN");
+	pa2m_afirmar(abb_recorrer(arbol, PREORDEN, array,
+				  sizeof(numeros) / sizeof(int)) ==
+			     sizeof(numeros) / sizeof(int),
+		     "Se cargaron los elementos esperados");
+
+	bool es_correcto = true;
+	for (size_t n = 0; n < sizeof(numeros) / sizeof(int) && es_correcto;
+	     n++)
+		es_correcto = resultado[n] == *(int *)array[n] ? true : false;
+
+	pa2m_afirmar(es_correcto,
+		     "Se cargaron todos los elementos en PREORDEN");
+
 	free(array);
 	abb_destruir(arbol);
 }
@@ -444,10 +552,18 @@ void cargar_array_con_algunos_elementos_recorrido_preorden()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
-	void **array = calloc(1, 20 * sizeof(void *));
-	pa2m_afirmar(
-		abb_recorrer(arbol, PREORDEN, array, 3) == 3,
-		"Se cargaron algunos elementos del arbol en el array correctamente, en PREORDEN");
+	int resultado[] = { 15, 12, 7, 14 };
+
+	void **array = calloc(1, 4 * sizeof(void *));
+	pa2m_afirmar(abb_recorrer(arbol, PREORDEN, array, 4) == 4,
+		     "Se cargaron los elementos esperados");
+
+	bool es_correcto = true;
+	for (size_t n = 0; n < 4 && es_correcto; n++)
+		es_correcto = resultado[n] == *(int *)array[n] ? true : false;
+
+	pa2m_afirmar(es_correcto, "Se cargaron aglunos elementos en PREORDEN");
+
 	free(array);
 	abb_destruir(arbol);
 }
@@ -458,13 +574,23 @@ void cargar_array_con_todos_los_elementos_recorrido_postorden()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+	int resultado[] = { 7, 15, 14, 12, 23, 21, 15 };
+
 	void **array =
 		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
-	pa2m_afirmar(
-		abb_recorrer(arbol, POSTORDEN, array,
-			     sizeof(numeros) / sizeof(int)) ==
-			sizeof(numeros) / sizeof(int),
-		"Se cargaron todos los elementos del arbol en el array correctamente, en POSTORDEN");
+	pa2m_afirmar(abb_recorrer(arbol, POSTORDEN, array,
+				  sizeof(numeros) / sizeof(int)) ==
+			     sizeof(numeros) / sizeof(int),
+		     "Se cargaron los elementos esperados");
+
+	bool es_correcto = true;
+	for (size_t n = 0; n < sizeof(numeros) / sizeof(int) && es_correcto;
+	     n++)
+		es_correcto = resultado[n] == *(int *)array[n] ? true : false;
+
+	pa2m_afirmar(es_correcto,
+		     "Se cargaron todos los elementos en POSTORDEN");
+
 	free(array);
 	abb_destruir(arbol);
 }
@@ -475,11 +601,17 @@ void cargar_array_con_algunos_elementos_recorrido_postorden()
 	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
-	void **array =
-		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
-	pa2m_afirmar(
-		abb_recorrer(arbol, POSTORDEN, array, 2) == 2,
-		"Se cargaron algunos elementos del arbol en el array correctamente, en POSTORDEN");
+	int resultado[] = { 7, 15 };
+
+	void **array = calloc(1, 2 * sizeof(void *));
+	pa2m_afirmar(abb_recorrer(arbol, POSTORDEN, array, 2) == 2,
+		     "Se cargaron los elementos esperados");
+
+	bool es_correcto = true;
+	for (size_t n = 0; n < 2 && es_correcto; n++)
+		es_correcto = resultado[n] == *(int *)array[n] ? true : false;
+
+	pa2m_afirmar(es_correcto, "Se cargaron algunos elementos en POSTORDEN");
 	free(array);
 	abb_destruir(arbol);
 }
@@ -487,16 +619,25 @@ void cargar_array_con_algunos_elementos_recorrido_postorden()
 void cargar_array_con_todos_los_elementos_recorrido_inorden()
 {
 	abb_t *arbol = abb_crear(comparador);
-	int numeros[] = { 15, 21, 17, 23, 4, 14, 15 };
+	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+	int resultado[] = { 7, 12, 14, 15, 15, 21, 23 };
+
 	void **array =
 		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
-	pa2m_afirmar(
-		abb_recorrer(arbol, INORDEN, array,
-			     sizeof(numeros) / sizeof(int)) ==
-			sizeof(numeros) / sizeof(int),
-		"Se cargaron todos los elementos del arbol en el array correctamente, en INORDEN");
+	pa2m_afirmar(abb_recorrer(arbol, INORDEN, array,
+				  sizeof(numeros) / sizeof(int)) ==
+			     sizeof(numeros) / sizeof(int),
+		     "Se cargaron los elementos esperados");
+
+	bool es_correcto = true;
+	for (size_t n = 0; n < sizeof(numeros) / sizeof(int) && es_correcto;
+	     n++)
+		es_correcto = resultado[n] == *(int *)array[n] ? true : false;
+
+	pa2m_afirmar(es_correcto, "Se cargaron todos los elementos en INORDEN");
+
 	free(array);
 	abb_destruir(arbol);
 }
@@ -504,14 +645,22 @@ void cargar_array_con_todos_los_elementos_recorrido_inorden()
 void cargar_array_con_algunos_elementos_recorrido_inorden()
 {
 	abb_t *arbol = abb_crear(comparador);
-	int numeros[] = { 15, 21, 2, 23, 7, 14, 15, 8 };
+	int numeros[] = { 15, 21, 12, 23, 7, 14, 15 };
 	for (size_t i = 0; i < sizeof(numeros) / sizeof(int); i++)
 		arbol = abb_insertar(arbol, &numeros[i]);
+	int resultado[] = { 7, 12, 14, 15, 15 };
+
 	void **array =
 		calloc(1, (sizeof(numeros) / sizeof(int)) * sizeof(void *));
-	pa2m_afirmar(
-		abb_recorrer(arbol, POSTORDEN, array, 5) == 5,
-		"Se cargaron algunos elementos del arbol en el array correctamente, en INORDEN");
+	pa2m_afirmar(abb_recorrer(arbol, INORDEN, array, 5) == 5,
+		     "Se cargaron los elementos esperados");
+
+	bool es_correcto = true;
+	for (size_t n = 0; n < 5 && es_correcto; n++)
+		es_correcto = resultado[n] == *(int *)array[n] ? true : false;
+
+	pa2m_afirmar(es_correcto, "Se cargaron todos los elementos en INORDEN");
+
 	free(array);
 	abb_destruir(arbol);
 }
