@@ -314,11 +314,7 @@ size_t abb_tamanio(abb_t *arbol)
 
 void abb_destruir(abb_t *arbol)
 {
-	if (arbol == NULL)
-		return;
-	if (arbol->tamanio != 0)
-		liberar_nodos(arbol->nodo_raiz, NULL);
-	free(arbol);
+	abb_destruir_todo(arbol, NULL);
 }
 
 void abb_destruir_todo(abb_t *arbol, void (*destructor)(void *))
