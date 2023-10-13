@@ -37,11 +37,11 @@ Sabemos que la naturaleza de un arbol es recursiva, por lo tanto las funciones q
 </div>
 
 ---
-*(**COMENTARIO**: En esta implementación se permiten insertar elementos repetidos y se tomó la convención de mandarlos hacia la izquierda. A su vez, si queremos eliminar un elemento con dos hijos, se tomará el predecesor inorden para reemplazarlo)*
+*(**COMENTARIO**: En esta implementación se permiten insertar elementos repetidos y se tomó la convención de mandarlos hacia la izquierda. A su vez, si queremos eliminar un elemento con dos hijos, se tomará el predecesor inorden para reemplazarlo. Tambien en el analisis de las complejidades de las operaciones, voy a suponer que el arbol esta balanceado. En el punto teorico se explicara que ocurre si no esta balanceado)*
 
-Para poder crear un arbol lo que se hace es reservar un bloque de memoria en el heap de tamaño adecuado *(Para que pueda almacenar todo lo mencionado anteriormente)*. También el usuario debe proporcionar un comparador para que se pueda almacenar la direccion de este en memoria. El resto de los campos se inicializan en 0 o `NULL`, dependiendo si es un puntero. En el caso de que haya algún fallo en el proceso, ya sea que no se pueda reservar memoria o el comparador sea invalido, se devolverá `NULL`. 
+Para poder crear un arbol lo que se hace es reservar un bloque de memoria en el heap de tamaño adecuado *(Para que pueda almacenar todo lo mencionado anteriormente)*. Se guardara la direccion de memoria del comparador y el resto de los campos de la estrcutura se inicializan en 0 o `NULL`, dependiendo si es un puntero. En el caso de que haya algún fallo en el proceso, ya sea que no se pueda reservar memoria o el comparador sea invalido, se devolverá `NULL`. 
 
-Notemos que la complejidad de esta operación es constante `O(1)`, pues si creamos `n` árboles, siempre estaremos haciendo las mismas operaciones simples.
+Notemos que la complejidad de esta operación es constante `O(1)`, pues en el peor de los casos queremos crear `n` arboles y para cada uno de ellos se realizara la misma cantidad de operaciones.
 
 ---
 <div align="center">
@@ -49,9 +49,9 @@ Notemos que la complejidad de esta operación es constante `O(1)`, pues si cream
 </div>
 
 ---
-En el caso de que se termine de usar el árbol, este debe ser destruido. Para dicho objetivo se proporcionan dos funciones, ambas liberan toda la memoria que está siendo usada por el árbol, la diferencia es que una aplica una función destructora a cada elemento del árbol. Para poder implementar estas funciones decidí hacerlo implementando una función recursiva que recorre el árbol en **postorden**. De este modo la eliminación es muy simple, pues el recorrido **postorden** da el camino mas optimo para eliminar un árbol.
+En el caso de que se termine de usar el árbol, este debe ser destruido. Para dicho objetivo se proporcionan dos funciones, ambas liberan toda la memoria que está siendo usada por el árbol, la diferencia es que una aplica una función destructora a cada elemento del árbol. Para poder implementar estas funciones decidí hacerlo implementando una función recursiva que recorre el árbol en **postorden** y va eliminando cada elemento del arbol y, si es necesario, aplica la funcion destructora. De este modo la eliminación es muy simple, pues el recorrido **postorden** da el camino mas optimo para eliminar un árbol.
 
-La complejidad de destruir un árbol siempre será `O(n)`, pues siempre debemos recorrer los `n` elementos que este tiene para así ir liberando la memoria de cada nodo.
+La complejidad de destruir un árbol siempre será `O(n)`, pues ya sea el mejor o peor caso, siempre debemos recorrer los `n` elementos que este tiene para así ir liberando la memoria de cada nodo.
 
 ---
 <div align="center">
@@ -59,9 +59,11 @@ La complejidad de destruir un árbol siempre será `O(n)`, pues siempre debemos 
 </div>
 
 ---
-Si se quisiera insertar un elemento lo que se hace es reservar un bloque de memoria en el heap de tamaño `nodo_abb_t`, en dicho bloque se almacenará el nuevo elemento que se quiere insertar, a su vez los punteros de izquierda y derecha, que en este caso son `NULL`.
+Para poder insertar un elemento en el arbol, se reserva un bloque de memoria en el heap de tamaño `nodo_abb_t`, en dicho bloque se almacenará el nuevo elemento que se quiere insertar, y a su vez los punteros a su hijo izquierdo y derecho, que en este caso son `NULL`.
 
-Una vez tenemos dicho bloque reservado, debemos recorrer el árbol de manera recursiva e ir comparando el elemento a insertar con los elementos que ya se encuentran en el árbol. Siguiendo la lógica de que si es mayor comparamos con los elementos del subárbol derecho, caso contrario con el izquierdo, así hasta llegar al final del árbol (posición donde debe insertarse el elemento). Una vez en dicha posición lo que se hace es hacer que el nodo que era el último apunte al nuevo que queremos insertar, si es menor o igual lo apunta por izquierda y sino por derecha.
+Una vez que se reservo dicho bloque, se recorre el árbol de manera recursiva y se va comparando el elemento a insertar con los elementos que ya se encuentran en el árbol. Siguiendo la lógica de que si el elemento a insertar es mayor, comparamos con los elementos del subárbol derecho y sino con el del izquierdo, así hasta llegar al final del árbol (posición donde debe insertarse el elemento). Una vez en dicha posición hacemos que el ultimo nodo apunte, por derecha o izquierda, al nuevo nodo.
+
+Veamos que la complejidad de insertar un elemento es `O(log(n))`, pues en el peor de los casos, el elemento se debe insertar en el ultimo nivel del arbol, entonces deberia bajar por toda una rama hasta llegar al ultimo nivel. Las operaciones de reapuntar punteros son constantes `O(1)` y no aportan al tamaño del problema. 
 
 ---
 <div align="center">
@@ -69,11 +71,9 @@ Una vez tenemos dicho bloque reservado, debemos recorrer el árbol de manera rec
 </div>
 
 ---
-Veamos que la complejidad de insertar un elemento es `O(log(n))`, pues después de comparar siempre estamos partiendo el problema a la mitad. Las otras operaciones de hacer que el último apunte al nuevo nodo, son constantes `O(1)` y no aportan al tamaño del problema.
+Para eliminar un elemento del árbol también se recorre de manera recursiva hasta encontrar el elemento que queremos eliminar y liberar la memoria que este ocupa. Durante este proceso se pueden dar dos casos diferentes:
 
-Para eliminar un elemento del árbol también se recorre de manera recursiva hasta encontrar el elemento que queremos eliminar. Una vez que lo hayamos encontrado se pueden dar dos casos diferentes:
-
-- El primero sería que se está eliminando un elemento con un hijo o ninguno, en este caso se procede eliminando el elemento y haciendo que el padre del que queremos eliminar apunte al hijo del que queremos eliminar. Como sabemos que tiene como máximo un hijo y si no tiene apunta a `NULL`, entonces no estaríamos perdiendo ningún elemento.
+- ***1ro.*** Si se está eliminando un elemento con un hijo o ninguno, se procede eliminando el elemento y haciendo que el padre del que queremos eliminar apunte al hijo del que estamos eliminando. Como sabemos que tiene como máximo un hijo, y si no tiene apunta a `NULL`, entonces no estaríamos rompiendo el arbol.
 
 ---
 <div align="center">
@@ -81,8 +81,7 @@ Para eliminar un elemento del árbol también se recorre de manera recursiva has
 </div>
 
 ---
-- El segundo caso sería que estemos eliminado un elemento con dos hijos, en este caso lo que se hace es buscar a partir del elemento que queremos eliminar el predecesor inorden, que vendría a ser la mayor cota menor. Una vez obtenemos dicho elemento, lo reemplazamos por el cual queremos eliminar, haciendo que este apunte a los hijos del que queremos eliminar y también el padre del que queremos eliminar ahora debe apuntar al predecesor. De esta manera se seguiría conservando el orden del árbol. En el caso de que el predecesor tenga un hijo o ninguno, se procede como el primer caso.
-Por último debemos liberar la memoria que está siendo usada por el nodo.
+- ***2do*** Si se esta eliminado un elemento con dos hijos, lo que se hace es buscar a partir del elemento que queremos eliminar el predecesor inorden, que vendría a ser la mayor cota menor. Una vez obtenemos dicho elemento, lo reemplazamos por el cual queremos eliminar, haciendo que este apunte a los hijos del que vamos a eliminar y haciendo el padre de este apunte al predecesor. De esta manera se seguiría conservando el orden del árbol y no romperiamos el arbol. En el caso de que el predecesor tenga un hijo o ninguno, se procede como el primer caso.
 
 ---
 <div align="center">
@@ -90,17 +89,40 @@ Por último debemos liberar la memoria que está siendo usada por el nodo.
 </div>
 
 ---
-Veamos que para ambos casos la complejidad es `O(log(n))`, pues cada vez que comparamos el elemento que buscamos con el del árbol, se nos descarta una parte de este. El resto de operaciones son asignar punteros y liberar memoria, es decir, operaciones constantes `O(1)`.
+Para analizar la complejidad de eliminar con un o nigun hijo, es posible aplicar el **Teorema Maestro**, pues como mencione en el **COMENTARIO** estoy suponiendo que el arbol esta balanceado. 
 
-Si queremos buscar un elemento de un árbol, lo que hace es muy similar al proceso de insertar y eliminar. Debemos recorrer el árbol comparando el elemento que buscamos con el nodo actual sobre el cual estamos parados, si el que buscamos es mas grande nos quedamos con el subárbol de la derecha y sino el de la izquierda. En el caso de que el elemento que se esté buscando no exista, se devolverá `NULL`.
+Sabemos que la expresion a que resuelve dicho teorema es la siguiente:
+```
+T(n) = a.T(n/b)+O(f(n)) a >= 1, b > 1 y f(n) > 0
+```
+En nuestro caso:
+- `a = 1` , pues solamente hacemos un llamdo recursivo dentro de la funcion.
+- `b = 2`, pues luego de cada llamado a funcion el problema se divide a la mitad.
+- `f(n) = K`, pues separar el problema solamente debemos modificar la direccion de memoria a la que apunta un puntero.
 
-Veamos que al hacer el mismo recorrido que insertar y eliminar, la complejidad de esta operación es `O(log(n))`.
+Luego la expresion buscada nos queda de la siguiente manera: 
+```
+T(n) = 1.T(n/2) + O(K) = T(n/2) + O(1).
+```
+Veamos que `log_b(a) = log_2(1) = 0 => n⁰` y ademas `f(n) = K*n⁰`. Por lo tanto como `n⁰ = f(n) => T(n) = O(n⁰.log(n)) = O(log(n))`, podemos concluir que eliminar un elemento con hijos o ninguno tiene una complejidad de `O(log(n))`.
+
+Ahora veamos que para cuando queremos eliminar un elemento con dos hijos, el peor de los casos seria eliminar un elemento que esta en el medio del arbol. Pues debemos recorrer por una rama hasta el nodo que queremos eliminar, `log(n)`, y despues buscar su predecesor inorden, `log(n)`. Pero al final nos va a terminar quedando que `T(n) = log(n) + log(n) = 2log(n)`  que finalmente para `Big-O` esto es `O(log(n))`. Las operaciones de reapuntar punteros y liberar memoria son constantes `O(1)` y no aportan al tamaño del problema.
+
+Observemos que para ambos casos de eliminacion, si el arbol esta balanceado, la complejidad es `O(log(n))`.
+
+Para buscar un elemento de un árbol, debemos recorrer el árbol comparando el elemento que buscamos con el nodo sobre el cual estamos parados, si el que buscamos es mas grande nos quedamos con el subárbol de la derecha y sino el de la izquierda. En el caso de que el elemento que se esté buscando no exista, se devolverá `NULL`. Veamos que es muy similar al proceso de insertar y eliminar, solamente que hacemos cosas diferentes cuando llegamos al nodo que buscamos.
+
+La complejidad de esta operacion es `O(log(n))`, pues en el peor de los casos, el elemento que buscamos no existe y tuve que recorrer el arbol hasta el ultimo nivel. Pero como cada vez que bajaba por una rama, estaba descartando otra, el problema se fue disminuyendo a la mitad.
 
 También se proporciona una función para saber el tamaño del árbol y si este está vacío. Ambas operaciones tienen complejidad constante `O(1)`, pues solamente estamos accediendo a un valor en un bloque de memoria sobre el cual tenemos un puntero directo, que vendría a ser el puntero al `árbol`.
 
-El usuario también puede hacer uso de un iterador interno. Este funciona recorriendo los elementos del árbol y aplicando la función proporcionada. Esta función al ser de tipo `bool`, puede indicar cuándo debe dejar de recorrer. Una vez se termina de recorrer el árbol, se devuelve la cantidad de elementos a la cual fue posible aplicarles la función. El recorrido del árbol puede ser **preorden**, **inorden** o **postorden**. Veamos que la complejidad de esta operación es `O(n)`, pues en el peor de los casos debo recorrer todo el árbol.
+El usuario también puede hacer uso de un iterador interno. Este funciona recorriendo los elementos del árbol y aplicando la función proporcionada, los posibles recorridos del arbol son **preorden**, **inorden** o **postorden**. La función al ser de tipo `bool`, puede indicar cuándo debe dejarse de recorrer el arbol. Una vez se terminado el recorrido, se devuelve la cantidad de elementos a la cual fue posible aplicarles la función. 
 
-Por último el usuario puede hacer uso de una función la cual le permite cargar la cantidad de elementos que quiera del árbol en un array. Como en el iterador interno, el árbol se recorre en **preorden**, **inorden** o **postorden**. A su vez la complejidad en el peor de los casos es `O(n)`, pues debería recorrer todo el árbol.
+Veamos que la complejidad del iterador es `O(n)`, pues en el peor de los casos debo recorrer todo el árbol y sea cual sea el recorrido, se debe vistar todos los nodos.
+
+Por último el usuario tambien puede hacer uso de una función la cual le permite cargar la cantidad de elementos que quiera del árbol en un array. Como en el iterador interno, el árbol se recorre en **preorden**, **inorden** o **postorden**. 
+
+A su vez la complejidad, en el peor de los casos, es `O(n)`, pues ocurria lo mimso que con el iterador.
 
 ## Respuestas a las preguntas teóricas
 Un árbol es un tipo de dato abstracto **(TDA)**. Se dice que este es una colección de nodos, un nodo puede apuntar a `n` nodos, pero solamente puede ser apuntado por uno y además ningún nodo apunta a la `raíz` del árbol. En el caso de que esto no se cumpla dejaria de ser un arbol y pasaria a ser un grafo. Que un nodo apunte a `NULL`, indica que este no tiene más nodos debajo de él. Esto nos permite tener una condición de corte cuando estamos recorriendo un árbol.
