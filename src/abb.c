@@ -16,7 +16,7 @@ nodo_abb_t *crear_nodo(void *elemento)
 }
 
 /*
- * Inserta un nuevo elemento en el arbol de modo que se siga cumpliendo que es un ABB.
+ * Inserta un nuevo elemento en el arbol en la posicion que le corresponde.
  */
 void insertar_nodo(nodo_abb_t *nuevo, nodo_abb_t *actual, nodo_abb_t *anterior,
 		   abb_comparador f)
@@ -36,6 +36,7 @@ void insertar_nodo(nodo_abb_t *nuevo, nodo_abb_t *actual, nodo_abb_t *anterior,
 
 /*
  * Busca el predecesor inorden a partir de actual.
+ * Y hace que su padre apunte a sus hijos.
  */
 void *buscar_predecesor(nodo_abb_t *actual, nodo_abb_t *anterior)
 {
@@ -48,11 +49,11 @@ void *buscar_predecesor(nodo_abb_t *actual, nodo_abb_t *anterior)
 }
 
 /*
- * Remplaza el nodo a eliminar con el predecesor inorden. Tambien devuelve el predecesor que remplazo 
- * al nodo eliminar.
+ * Remplaza el nodo a eliminar con el predecesor inorden. T
+ * Dvuelve el nodo que remplazo al nodo eliminar.
  */
-void *eliminar_dos_hijos(nodo_abb_t *eliminar, nodo_abb_t *anterior,
-			 abb_comparador f)
+void *con_dos_hijos(nodo_abb_t *eliminar, nodo_abb_t *anterior,
+		    abb_comparador f)
 {
 	nodo_abb_t *predecesor = buscar_predecesor(eliminar->izquierda, NULL);
 
@@ -69,30 +70,38 @@ void *eliminar_dos_hijos(nodo_abb_t *eliminar, nodo_abb_t *anterior,
 }
 
 /*
+ * Remplaza el nodo a eliminar con alguno de sus hijos, pueden que sean NULL o no. 
+ * Devuelve por quien fue remplazado el nodo a eliminar.
+ */
+void *sin_dos_hijos(nodo_abb_t *eliminar, nodo_abb_t *anterior,
+		    abb_comparador f)
+{
+	if (f(anterior->elemento, eliminar->elemento) >= 0) {
+		anterior->izquierda = eliminar->derecha == NULL ?
+					      eliminar->izquierda :
+					      eliminar->derecha;
+		return anterior->izquierda;
+	}
+	anterior->derecha = eliminar->derecha == NULL ? eliminar->izquierda :
+							eliminar->derecha;
+	return anterior->derecha;
+}
+
+/*
  * Elimina el nodo que tiene el elemento que se quiere eliminar.
  */
 void *eliminar_nodo(abb_t *abb, nodo_abb_t *eliminar, nodo_abb_t *anterior)
 {
 	void *removido = eliminar->elemento;
-	void *ptr = NULL;
+	void *remplazo = NULL;
 
 	if (eliminar->derecha && eliminar->izquierda)
-		ptr = eliminar_dos_hijos(eliminar, anterior, abb->comparador);
-
-	else if (abb->comparador(anterior->elemento, removido) >= 0) {
-		anterior->izquierda = eliminar->derecha == NULL ?
-					      eliminar->izquierda :
-					      eliminar->derecha;
-		ptr = anterior->izquierda;
-	} else {
-		anterior->derecha = eliminar->derecha == NULL ?
-					    eliminar->izquierda :
-					    eliminar->derecha;
-		ptr = anterior->derecha;
-	}
+		remplazo = con_dos_hijos(eliminar, anterior, abb->comparador);
+	else
+		remplazo = sin_dos_hijos(eliminar, anterior, abb->comparador);
 
 	if (abb->comparador(abb->nodo_raiz->elemento, removido) == 0)
-		abb->nodo_raiz = ptr;
+		abb->nodo_raiz = remplazo;
 
 	free(eliminar);
 	abb->tamanio--;
@@ -128,16 +137,17 @@ void *busqueda_binaria(void *elemento, nodo_abb_t *actual, abb_comparador f)
 {
 	if (actual == NULL)
 		return NULL;
+
 	if (f(elemento, actual->elemento) == 0)
 		return actual->elemento;
 	else if (f(actual->elemento, elemento) > 0)
 		return busqueda_binaria(elemento, actual->izquierda, f);
-	else
-		return busqueda_binaria(elemento, actual->derecha, f);
+	return busqueda_binaria(elemento, actual->derecha, f);
 }
 
 /*
- * Recorre el arbol usando el recorrido Postorden y libera la memoria ocupada por cada nodo. 
+ * Recorre el arbol en postorden y libera la memoria ocupada por cada nodo,
+ * a su vez si la funcion no es NULL, se le aplica a cada elemento. 
  */
 void liberar_nodos(nodo_abb_t *actual, void (*destructor)(void *))
 {
