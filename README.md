@@ -81,7 +81,7 @@ Para eliminar un elemento del árbol también se recorre de manera recursiva has
 </div>
 
 ---
-- ***2do*** Si se esta eliminado un elemento con dos hijos, lo que se hace es buscar a partir del elemento que queremos eliminar el predecesor inorden, que vendría a ser la mayor cota menor. Una vez obtenemos dicho elemento, lo reemplazamos por el cual queremos eliminar, haciendo que este apunte a los hijos del que vamos a eliminar y haciendo el padre de este apunte al predecesor. De esta manera se seguiría conservando el orden del árbol y no romperiamos el arbol. En el caso de que el predecesor tenga un hijo o ninguno, se procede como el primer caso.
+- ***2do*** Si se esta eliminado un elemento con dos hijos, lo que se hace es buscar a partir del elemento que queremos eliminar el predecesor inorden, que vendría a ser la mayor cota menor. Una vez obtenemos dicho elemento, lo remplazamos por el cual queremos eliminar, haciendo que este apunte a los hijos del que vamos a eliminar y haciendo el padre de este apunte al predecesor. De esta manera se seguiría conservando el orden del árbol y no romperiamos el arbol. En el caso de que el predecesor tenga un hijo o ninguno, se procede como el primer caso.
 
 ---
 <div align="center">
@@ -104,7 +104,7 @@ Luego la expresion buscada nos queda de la siguiente manera:
 
 $\therefore T(n) = 1*T(n/2) + O(1) = T(n/2) + O(1)$
 
-Veamos que $log_b(a) = log_2(1) = 0 => n⁰$ y ademas $f(n) = \kappa*n⁰$. Por lo tanto como $n⁰ = f(n) => T(n) = O(n⁰*log(n)) = O(log(n))$, podemos concluir que eliminar un elemento con hijos o ninguno tiene una complejidad de $O(log(n))$.
+Veamos que $log_b(a) = log_2(1) = 0 => n⁰$ y ademas $f(n) = \kappa n⁰$. Por lo tanto como $n⁰ = f(n) => T(n) = O(n⁰*log(n)) = O(log(n))$, podemos concluir que eliminar un elemento con hijos o ninguno tiene una complejidad de $O(log(n))$.
 
 Ahora veamos que para cuando queremos eliminar un elemento con dos hijos, el peor de los casos seria eliminar un elemento que esta en el medio del arbol. Pues debemos recorrer por una rama hasta el nodo que queremos eliminar, $log(n)$, y despues buscar su predecesor inorden, $log(n)$, Pero al final nos va a terminar quedando que $T(n) = log(n) + log(n) = 2log(n)$  que finalmente para **Big-O** esto es $O(log(n))$. Las operaciones de reapuntar punteros y liberar memoria son constantes $O(1)$ y no aportan al tamaño del problema.
 
