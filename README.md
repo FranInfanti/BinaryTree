@@ -209,7 +209,9 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   <img width="50%" src="img/insertar.svg">
   </div>
 
-
+  <div align="center"><font size="2">
+  Comparamos con la raíz y vemos que el elemento a insertar es más grande, entonces lo "mandamos" para el subárbol derecho. Nuevamente hacemos la misma comparación con la "raíz" del subárbol derecho. Hasta finalmente encontrar la posición donde debemos insertarlo.
+  </font></div>
 
   ---
 - En cuanto a la operación de *eliminar* un elemento de un árbol, se pueden dar tres situaciones diferentes. A pesar de que se prodeca de otra forma, la complejidad total de eliminar es $O(log(n))$:
@@ -219,12 +221,15 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   <img width="50%" src="img/eliminar_hoja.svg">
   </div>
 
+  <div align="center"><font size="2">Lo que se hace es buscar el elemento que se quiera eliminar y quitarlo del árbol</font></div>
+
   ---
   - Eliminar un nodo con un `hijo`.
   <div align="center">
   <img width="50%" src="img/eliminar_con_hijo.svg">
   </div>
 
+  <div align="center"><font size="2">Se busca el elemento recorriendo el árbol. Una vez que se lo encuentra se debe hacer que al anterior a el apunte al hijo del que queremos eliminar. Una vez hecho eso podemos eliminar el nodo</font></div>
 
   ---
   - Eliminar un nodo con dos `hijos`.
@@ -232,7 +237,8 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   <img width="70%" src="img/eliminar_con_hijos.svg">
   </div>
 
- 
+  <div align="center"><font size="2">Una vez encontramos el elemento que queremos eliminar, debemos encontrar el predecesor o el sucesor de este. El predecesor sería la mayor cota menor y el sucesor la menor cota superior. Luego debemos reemplazar el elemento que queremos eliminar por el predecesor o el sucesor. En el caso de que tengan un hijo, se procede como cuando queremos eliminar un elemento con un hijo. Es muy importante que se tome una convención según cual tomamos y mantener dicha convención para siempre</font></div> 
+
   ---
 - Para *buscar* un elemento en el árbol debemos ir comparando el elemento que buscamos con la clave del nodo. Como en el proceso de insertar, esta comparación determina de qué lado del árbol debemos buscar el elemento. La complejidad de esta operacion es $O(log(n))$, al igual que la busqueda binaria.
 
