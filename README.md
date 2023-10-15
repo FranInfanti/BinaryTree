@@ -206,7 +206,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
 
   ---
   <div align="center">
-  <img width="50%" src="img/arbol_degenerado.svg">
+  
   </div>
 
   <div align="center"><font size="2">
@@ -218,7 +218,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
 
   - Eliminar un nodo `hoja`.
   <div align="center">
-  <img width="50%" src="img/arbol_degenerado.svg">
+  
   </div>
 
   <div align="center"><font size="2">Lo que se hace es buscar el elemento que se quiera eliminar y quitarlo del árbol</font></div>
@@ -226,7 +226,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   ---
   - Eliminar un nodo con un `hijo`.
   <div align="center">
-  <img width="50%" src="img/arbol_degenerado.svg">
+  
   </div>
 
   <div align="center"><font size="2">Se busca el elemento recorriendo el árbol. Una vez que se lo encuentra se debe hacer que al anterior a el apunte al hijo del que queremos eliminar. Una vez hecho eso podemos eliminar el nodo</font></div>
@@ -234,7 +234,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   ---
   - Eliminar un nodo con dos `hijos`.
   <div align="center">
-  <img width="70%" src="img/arbol_degenerado.svg">
+  
   </div>
 
   <div align="center"><font size="2">Una vez encontramos el elemento que queremos eliminar, debemos encontrar el predecesor o el sucesor de este. El predecesor sería la mayor cota menor y el sucesor la menor cota superior. Luego debemos reemplazar el elemento que queremos eliminar por el predecesor o el sucesor. En el caso de que tengan un hijo, se procede como cuando queremos eliminar un elemento con un hijo. Es muy importante que se tome una convención según cual tomamos y mantener dicha convención para siempre</font></div> 
@@ -244,7 +244,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
 
 ---
 <div align="center">
-<img width="90%" src="img/arbol_degenerado.svg">
+<img width="90%" src="img/buscar_elemento.svg">
 </div>
 
 ---
