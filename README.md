@@ -125,7 +125,7 @@ Por último el usuario tambien puede hacer uso de una función la cual le permit
 A su vez la complejidad, en el peor de los casos, es $O(n)$, pues ocurria lo mimso que con el iterador.
 
 ## Respuestas a las preguntas teóricas
-Un árbol es un tipo de dato abstracto **(TDA)**. Se dice que este es una colección de nodos, en la cual un nodo puede apuntar a `n` nodos, pero solamente puede ser apuntado por uno y además ningún nodo puede apuntar a la `raíz` del árbol. En el caso de que esto no se cumpla dejaria de ser un arbol y pasaria a ser un grafo. Que un nodo apunte a `NULL`, indica que este no tiene más nodos debajo de él y esto nos permite tener una condición de corte cuando estamos recorriendo un árbol.
+Un árbol es un tipo de dato abstracto **(TDA)**. Se dice que este es una colección de nodos, en la cual un nodo puede apuntar a $n$ nodos, pero solamente puede ser apuntado por uno y además ningún nodo puede apuntar a la `raíz` del árbol. En el caso de que esto no se cumpla dejaria de ser un arbol y pasaria a ser un grafo. Que un nodo apunte a `NULL`, indica que este no tiene más nodos debajo de él y esto nos permite tener una condición de corte cuando estamos recorriendo un árbol.
 
 La idea general de porqué se crean los árboles, es porque cuando nosotros tenemos una lista simplemente enlazada o doblemente enlazada, el tiempo de búsqueda de un elemento en el peor de los casos es $O(n)$, en cambio con la implementación de un árbol veremos que el tiempo de ejecucion pasa a ser $O(log(n))$. 
 
