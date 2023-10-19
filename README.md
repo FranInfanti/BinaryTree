@@ -20,16 +20,15 @@ make valgrind-chanutron
 ```
 ---
 ##  Funcionamiento
+El programa consiste en el uso de un **ABB**, este es un tipo de árbol con todas sus características explicadas en el punto teórico.
 
-El programa consiste en la implementacion de un **ABB**, este es un tipo de árbol con todas sus características explicadas en el punto teórico. 
-
-La implementación que se utilizó para crear este tipo de árbol consiste de dos estructuras. Una principal, `abb_t`, la cual almacena la dirección de memoria del primer nodo, la cantidad de elementos y un comparador proporcionado por el usuario. Este comparador me permitía mantener cierto orden en el arbol. 
+La implementación que se utilizó para crear este tipo de árbol consiste de dos estructuras. Una principal, `abb_t`, la cual almacena la dirección de memoria del primer nodo, la cantidad de elementos y un comparador proporcionado por el usuario. Este comparador me permitía mantener cierto orden en el árbol.
 
 La segunda estructura que se utilizó, `nodo_abb_t`, cumple la función de almacenar la dirección de memoria del elemento y del nodo de su izquierda y derecha. Es muy importante que si un nodo no tiene izquierda o derecha, que éste apunte a `NULL`. De este modo se sabrá si hay que seguir recorriendo por dicha rama.
 
 El usuario puede almacenar los elementos que desee en el árbol, por dicho motivo es que hago uso de los `void*`, los cuales me permiten almacenar direcciones de memoria sin necesidad de saber que hay en dichas direcciones. Por este motivo es importante el comparador, pues yo no se como comparar los elementos que me ingresa el usuario.
 
-Sabemos que la naturaleza de un arbol es recursiva, por lo tanto las funciones que requieran recorrer el arbol fueron implementadas de forma recursiva. Al hacerlo de esta forma, cada llamado a funcion se concentra en un unico nodo. Es decir, la primera vez que se llame a la funcion se creara un stackframe donde el problema es el primer nodo, luego cuando si se quiere ir por otra rama para acceder a otro nodo se llamara nuevamente a la funcion y se creara un nuevo stackframe donde el problema sera otro nodo diferente al del primero. 
+Sabemos que la naturaleza de un árbol es recursiva, por lo tanto las funciones que requieran recorrer el árbol fueron implementadas de forma recursiva. Al hacerlo de esta forma, cada llamado a función se concentra en un único nodo. Es decir, la primera vez que se llame a la función se creará un stackframe donde el problema es el primer nodo, luego cuando si se quiere ir por otra rama para acceder a otro nodo se llamará nuevamente a la función y se creará un nuevo stackframe donde el problema será otro nodo diferente al del primero.
 
 ---
 <div align="center">
@@ -37,11 +36,11 @@ Sabemos que la naturaleza de un arbol es recursiva, por lo tanto las funciones q
 </div>
 
 ---
-*(**COMENTARIO**: En esta implementación se permiten insertar elementos repetidos y se tomó la convención de mandarlos hacia la izquierda. A su vez, si queremos eliminar un elemento con dos hijos, se tomará el predecesor inorden para reemplazarlo. Tambien en el analisis de las complejidades de las operaciones, voy a suponer que el arbol esta balanceado. En el punto teorico se explicara que ocurre si no esta balanceado)*
+*(**COMENTARIO**: En esta implementación se permiten insertar elementos repetidos y se tomó la convención de mandarlos hacia la izquierda. A su vez, si queremos eliminar un elemento con dos hijos, se tomará el predecesor inorden para reemplazarlo. También en el análisis de las complejidades de las operaciones, voy a suponer que el árbol esta balanceado. En el punto teórico se explica qué ocurre si no esta balanceado)*
 
-Para poder crear un arbol lo que se hace es reservar un bloque de memoria en el heap de tamaño adecuado *(Para que pueda almacenar todo lo mencionado anteriormente)*. Se guardara la direccion de memoria del comparador y el resto de los campos de la estrcutura se inicializan en 0 o `NULL`, dependiendo si es un puntero. En el caso de que haya algún fallo en el proceso, ya sea que no se pueda reservar memoria o el comparador sea invalido, se devolverá `NULL`. 
+Para poder crear un árbol lo que se hace es reservar un bloque de memoria en el heap de tamaño adecuado *(Para que pueda almacenar todo lo mencionado anteriormente)*. Se guardará la dirección de memoria del comparador y el resto de los campos de la estructura se inicializan en $0$ o `NULL`, dependiendo si es un puntero. En el caso de que haya algún fallo en el proceso, ya sea que no se pueda reservar memoria o el comparador sea invalido, se devolverá `NULL`.
 
-Notemos que la complejidad de esta operación es constante $O(1)$, pues en el peor de los casos siempre se realizara la misma cantidad de operaciones.
+Notemos que la complejidad de esta operación es constante $O(1)$, pues en el peor de los casos siempre se realizará la misma cantidad de operaciones.
 
 ---
 <div align="center">
@@ -49,7 +48,7 @@ Notemos que la complejidad de esta operación es constante $O(1)$, pues en el pe
 </div>
 
 ---
-En el caso de que se termine de usar el árbol, este debe ser destruido. Para dicho objetivo se proporcionan dos funciones, ambas liberan toda la memoria que está siendo usada por el árbol, la diferencia es que una aplica una función destructora a cada elemento del árbol. Para poder implementar estas funciones decidí hacerlo implementando una función recursiva que recorre el árbol en **postorden** y va eliminando cada elemento del arbol y, si es necesario, aplica la funcion destructora. De este modo la eliminación es muy simple, pues el recorrido **postorden** da el camino mas optimo para eliminar un árbol.
+En el caso de que se termine de usar el árbol, este debe ser destruido. Para dicho objetivo se proporcionan dos funciones, ambas liberan toda la memoria que está siendo usada por el árbol, la diferencia es que una aplica una función destructora a cada elemento del árbol. Para poder implementar estas funciones decidí hacerlo implementando una función recursiva que recorre el árbol en **postorden** y va eliminando cada elemento del árbol y, si es necesario, aplica la función destructora. De este modo la eliminación es muy simple, pues el recorrido **postorden** da el camino mas optimo para eliminar un árbol.
 
 La complejidad de destruir un árbol siempre será $O(n)$, pues ya sea el mejor o peor caso, siempre debemos recorrer los $n$ elementos que este tiene para así ir liberando la memoria de cada nodo.
 
@@ -59,11 +58,11 @@ La complejidad de destruir un árbol siempre será $O(n)$, pues ya sea el mejor 
 </div>
 
 ---
-Para poder insertar un elemento en el arbol, se reserva un bloque de memoria en el heap de tamaño `nodo_abb_t`, en dicho bloque se almacenará el nuevo elemento que se quiere insertar, y a su vez los punteros a su hijo izquierdo y derecho, que en este caso son `NULL`.
+Para poder insertar un elemento en el árbol, se reserva un bloque de memoria en el heap de tamaño `nodo_abb_t`, en dicho bloque se almacenará el nuevo elemento que se quiere insertar, y a su vez los punteros a su hijo izquierdo y derecho, que en este caso son `NULL`.
 
-Una vez que se reservo dicho bloque, se recorre el árbol de manera recursiva y se va comparando el elemento a insertar con los elementos que ya se encuentran en el árbol. Siguiendo la lógica de que si el elemento a insertar es mayor, comparamos con los elementos del subárbol derecho y sino con el del izquierdo, así hasta llegar al final del árbol (posición donde debe insertarse el elemento). Una vez en dicha posición hacemos que el ultimo nodo apunte, por derecha o izquierda, al nuevo nodo.
+Una vez que se reservó dicho bloque, se recorre el árbol de manera recursiva y se va comparando el elemento a insertar con los elementos que ya se encuentran en el árbol. Siguiendo la lógica de que si el elemento a insertar es mayor, comparamos con los elementos del subárbol derecho y sino con el del izquierdo, así hasta llegar al final del árbol (posición donde debe insertarse el elemento). Una vez en dicha posición hacemos que el último nodo apunte, por derecha o izquierda, al nuevo nodo.
 
-Veamos que la complejidad de insertar un elemento es $O(log(n))$, pues en el peor de los casos, el elemento se debe insertar en el ultimo nivel del arbol, entonces deberia bajar por toda una rama hasta llegar al ultimo nivel. Las operaciones de reapuntar punteros son constantes $O(1)$ y no aportan al tamaño del problema. 
+Veamos que la complejidad de insertar un elemento es $O(log(n))$, pues en el peor de los casos, el elemento se debe insertar en el último nivel del árbol, entonces debería bajar por toda una rama hasta llegar al último nivel. Las operaciones de apuntar punteros son constantes $O(1)$ y no aportan al tamaño del problema.
 
 ---
 <div align="center">
@@ -73,7 +72,7 @@ Veamos que la complejidad de insertar un elemento es $O(log(n))$, pues en el peo
 ---
 Para eliminar un elemento del árbol también se recorre de manera recursiva hasta encontrar el elemento que queremos eliminar y liberar la memoria que este ocupa. Durante este proceso se pueden dar dos casos diferentes:
 
-- ***1ro.*** Si se está eliminando un elemento con un hijo o ninguno, se procede eliminando el elemento y haciendo que el padre del que queremos eliminar apunte al hijo del que estamos eliminando. Como sabemos que tiene como máximo un hijo, y si no tiene apunta a `NULL`, entonces no estaríamos rompiendo el arbol.
+- ***1ro.*** Si se está eliminando un elemento con un hijo o ninguno, se procede eliminando el elemento y haciendo que el padre del que queremos eliminar apunte al hijo del que estamos eliminando. Como sabemos que tiene como máximo un hijo, y si no tiene apunta a `NULL`, entonces no estaríamos rompiendo el árbol.
 
 ---
 <div align="center">
@@ -93,26 +92,26 @@ Para analizar la complejidad de eliminar con un o nigun hijo, es posible aplicar
 
 Sabemos que la expresion a que resuelve dicho teorema es la siguiente:
 
-$T(n) = a*T(n/b)+O(f(n))$, con $a \ge 1, b > 1, f(n) > 0$
+$T(n) = \alpha T(\frac{n}{\beta})+O(f(n))$, con $\alpha \ge 1, \beta > 1, f(n) > 0$
 
 En nuestro caso:
-- $a = 1$ , pues solamente hacemos un llamdo recursivo dentro de la funcion.
-- $b = 2$, pues luego de cada llamado a funcion el problema se divide a la mitad.
+- $\alpha = 1$ , pues solamente hacemos un llamdo recursivo dentro de la funcion.
+- $\beta = 2$, pues luego de cada llamado a funcion el problema se divide a la mitad.
 - $f(n) = \kappa$, pues separar el problema solamente debemos modificar la direccion de memoria a la que apunta un puntero.
 
 Luego la expresion buscada nos queda de la siguiente manera: 
 
-$\therefore T(n) = 1*T(n/2) + O(1) = T(n/2) + O(1)$
+$\therefore T(n) = 1T(\frac{n}{2}) + O(1) = T(\frac{n}{2}) + O(1)$
 
 Veamos que $log_b(a) = log_2(1) = 0 => n⁰$ y ademas $f(n) = \kappa n⁰$. Por lo tanto como $n⁰ = f(n) => T(n) = O(n⁰*log(n)) = O(log(n))$, podemos concluir que eliminar un elemento con hijos o ninguno tiene una complejidad de $O(log(n))$.
 
-Ahora veamos que para cuando queremos eliminar un elemento con dos hijos, el peor de los casos seria eliminar un elemento que esta en el medio del arbol. Pues debemos recorrer por una rama hasta el nodo que queremos eliminar, $log(n)$, y despues buscar su predecesor inorden, $log(n)$, Pero al final nos va a terminar quedando que $T(n) = log(n) + log(n) = 2log(n)$  que finalmente para **Big-O** esto es $O(log(n))$. Las operaciones de reapuntar punteros y liberar memoria son constantes $O(1)$ y no aportan al tamaño del problema.
+Ahora veamos que para cuando queremos eliminar un elemento con dos hijos, el peor de los casos seria eliminar un elemento que esta en el medio del arbol. En este caso debemos recorrer por una rama hasta el nodo que queremos eliminar, esto seria una operacion $log(n)$, pues el arbol al estar balanceado, siempre que avanzamos por una rama estamos descartando la otra mitad del subarbol. Despues buscamos su predecesor inorden, lo cual seria otra operacion $log(n)$, por el mismo motivo que el anterior. Pero al final nos va a terminar quedando que $T(n) = log(n) + log(n) + O(1) = 2log(n) +O(1)$  que finalmente para **Big-O** esto es $O(log(n))$. Las operaciones de reapuntar punteros y liberar memoria son constantes $O(1)$ y no aportan al tamaño del problema.
 
 Observemos que para ambos casos de eliminacion, si el arbol esta balanceado, la complejidad es $O(log(n))$.
 
 Para buscar un elemento de un árbol, debemos recorrer el árbol comparando el elemento que buscamos con el nodo sobre el cual estamos parados, si el que buscamos es mas grande nos quedamos con el subárbol de la derecha y sino el de la izquierda. En el caso de que el elemento que se esté buscando no exista, se devolverá `NULL`. Veamos que es muy similar al proceso de insertar y eliminar, solamente que hacemos cosas diferentes cuando llegamos al nodo que buscamos.
 
-La complejidad de esta operacion es $O(log(n))$, pues en el peor de los casos, el elemento que buscamos no existe y tuve que recorrer el arbol hasta el ultimo nivel. Pero como cada vez que bajaba por una rama, estaba descartando otra, el problema se fue disminuyendo a la mitad.
+La complejidad de esta operacion es $O(log(n))$, pues en el peor de los casos, el elemento que buscamos no existe y tuve que recorrer el arbol hasta el ultimo nivel. Pero como cada vez que bajaba por una rama, estaba descartando otra, el problema se fue disminuyendo a la mitad. El analisis es muy similar al analisis de insertar de un elemento en el arbol.
 
 También se proporciona una función para saber el tamaño del árbol y si este está vacío. Ambas operaciones tienen complejidad constante $O(1)$, pues solamente estamos accediendo a un valor en un bloque de memoria sobre el cual tenemos un puntero directo, que vendría a ser el puntero al `árbol`.
 
@@ -134,7 +133,7 @@ El nodo principal del árbol se lo conoce como la `raíz`, por este nodo será d
 - Se dice que un nodo es `padre`, cuando éste apunta a otros nodos.
 - Se dice que un nodo es `hijo`, cuando tiene un padre, es decir, cuando es apuntado por un nodo.
 - Se dice que un nodo es una `hoja`, si es que este no tiene hijos.
-- Se puede dividir a un árbol según sus `niveles`, siendo el 1er nivel el de la `raíz` y aumentando hacia abajo.
+- Se puede dividir a un árbol según sus `niveles`, siendo el $1er$ nivel el de la `raíz` y aumentando hacia abajo.
 - La `altura` de un árbol se representa según la cantidad de niveles que este tiene y esta se puede calcular de la siguiente forma:
 
   - Si la cantidad de elementos de un arbol se calcula como: $\zeta = 2^\psi-1$ siendo $\psi$ los niveles del arbol, entonces operando algebraicamente obtenemos que la cantidad de niveles se calcula como $log_2(\zeta+1)$.
@@ -151,7 +150,7 @@ Las operaciones que se definen sobre los arboles son: *crear*, *destruir*, *inse
 
 En mi caso solamente voy a explicar qué son los *Arboles N-Arios*, *Arboles Binarios* y los **ABB**. Primero empezare con los *N-Arios*, luego los *Binarios* y por ultimo los **ABB**. En cada uno de estos arboles voy a analizar las operaciones mencionadas. Algunas de estas son iguales (si tomamos la misma implementacion) en los tres tipos de arboles, por ejemplo: *crear*, *destruir*, *vacio*. 
 
-- La complejidad de *crear* seria de $O(1)$, porque en el peor siempre estamos realizando la misma cantidad de operaciones. Que vendrian a ser reservar un bloque de memoria en el heap usando `malloc()` o `calloc()`.
+- La complejidad de *crear* seria de $O(1)$, porque en el peor caso siempre estamos realizando la misma cantidad de operaciones. Que vendrian a ser reservar un bloque de memoria en el heap usando `malloc()` o `calloc()`.
 - La complejidad de *destruir* siempre va a ser $O(n)$, pues si reservamos $n$ bloques de memoria para $n$ elementos del arbol, debemos liberar $n$ bloques.
 - La complejidad de *vacio* depende de la implementacion que se tome. Si se tiene como informacion la cantidad de elementos que hay en el arbol, su complejidad sera $O(1)$, pues deberiamos ir a ver el valor de una variable. Ahora, si no tenemos un contador de elementos, una forma de determinar si esta vacio es recorrer el arbol e ir contabilizando los elementos sobre los cuales pasamos. En este caso, en el peor de todos, deberia recorrer los $n$ elementos para decir que no esta vacio, entonces su complejidad seria $O(n)$.
 
