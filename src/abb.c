@@ -18,20 +18,21 @@ nodo_abb_t *crear_nodo(void *elemento)
 /*
  * Inserta un nuevo elemento en el arbol en la posicion que le corresponde.
  */
-void insertar_nodo(nodo_abb_t *nuevo, nodo_abb_t *actual, nodo_abb_t *anterior,
-		   abb_comparador f)
+void insertar_nodo(nodo_abb_t *nuevo, nodo_abb_t *actual, abb_comparador f)
 {
-	if (actual == NULL) {
-		if (f(anterior->elemento, nuevo->elemento) >= 0)
-			anterior->izquierda = nuevo;
-		else
-			anterior->derecha = nuevo;
+	if (actual == NULL)
 		return;
+	if (f(actual->elemento, nuevo->elemento) >= 0) {
+		if (actual->izquierda != NULL)
+			insertar_nodo(nuevo, actual->izquierda, f);
+		else
+			actual->izquierda = nuevo;
+	} else {
+		if (actual->derecha != NULL)
+			insertar_nodo(nuevo, actual->derecha, f);
+		else
+			actual->derecha = nuevo;
 	}
-	if (f(actual->elemento, nuevo->elemento) >= 0)
-		insertar_nodo(nuevo, actual->izquierda, actual, f);
-	else
-		insertar_nodo(nuevo, actual->derecha, actual, f);
 }
 
 /*
@@ -52,39 +53,14 @@ void *buscar_predecesor(nodo_abb_t *actual, nodo_abb_t *anterior)
  * Remplaza el nodo a eliminar con el predecesor inorden. T
  * Dvuelve el nodo que remplazo al nodo eliminar.
  */
-void *con_dos_hijos(nodo_abb_t *eliminar, nodo_abb_t *anterior,
-		    abb_comparador f)
+void *con_dos_hijos(nodo_abb_t *eliminar, abb_comparador f)
 {
 	nodo_abb_t *predecesor = buscar_predecesor(eliminar->izquierda, NULL);
-
 	predecesor->derecha = eliminar->derecha;
 	if (eliminar->izquierda != predecesor)
 		predecesor->izquierda = eliminar->izquierda;
 
-	if (f(anterior->elemento, eliminar->elemento) >= 0)
-		anterior->izquierda = predecesor;
-	else
-		anterior->derecha = predecesor;
-
 	return predecesor;
-}
-
-/*
- * Remplaza el nodo a eliminar con alguno de sus hijos, pueden que sean NULL o no. 
- * Devuelve por quien fue remplazado el nodo a eliminar.
- */
-void *sin_dos_hijos(nodo_abb_t *eliminar, nodo_abb_t *anterior,
-		    abb_comparador f)
-{
-	if (f(anterior->elemento, eliminar->elemento) >= 0) {
-		anterior->izquierda = eliminar->derecha == NULL ?
-					      eliminar->izquierda :
-					      eliminar->derecha;
-		return anterior->izquierda;
-	}
-	anterior->derecha = eliminar->derecha == NULL ? eliminar->izquierda :
-							eliminar->derecha;
-	return anterior->derecha;
 }
 
 /*
@@ -96,18 +72,23 @@ void *eliminar_nodo(abb_t *abb, nodo_abb_t *eliminar, nodo_abb_t *anterior)
 	void *remplazo = NULL;
 
 	if (eliminar->derecha && eliminar->izquierda)
-		remplazo = con_dos_hijos(eliminar, anterior, abb->comparador);
+		remplazo = con_dos_hijos(eliminar, abb->comparador);
 	else
-		remplazo = sin_dos_hijos(eliminar, anterior, abb->comparador);
+		remplazo = !eliminar->derecha ? eliminar->izquierda :
+						eliminar->derecha;
+
+	if (anterior != NULL) {
+		if (abb->comparador(anterior->elemento, removido) >= 0)
+			anterior->izquierda = remplazo;
+		else
+			anterior->derecha = remplazo;
+	}
 
 	if (abb->comparador(abb->nodo_raiz->elemento, removido) == 0)
 		abb->nodo_raiz = remplazo;
 
 	free(eliminar);
 	abb->tamanio--;
-	if (abb->tamanio == 0)
-		abb->nodo_raiz = NULL;
-
 	return removido;
 }
 
@@ -286,7 +267,7 @@ abb_t *abb_insertar(abb_t *arbol, void *elemento)
 		return NULL;
 
 	if (arbol->tamanio != 0)
-		insertar_nodo(nuevo, arbol->nodo_raiz, NULL, arbol->comparador);
+		insertar_nodo(nuevo, arbol->nodo_raiz, arbol->comparador);
 	else
 		arbol->nodo_raiz = nuevo;
 	arbol->tamanio++;
@@ -299,8 +280,12 @@ void *abb_quitar(abb_t *arbol, void *elemento)
 		return NULL;
 	if (arbol->tamanio == 0)
 		return NULL;
+	void *removido = buscar_nodo(arbol, elemento, arbol->nodo_raiz, NULL);
 
-	return buscar_nodo(arbol, elemento, arbol->nodo_raiz, arbol->nodo_raiz);
+	if (arbol->tamanio == 0)
+		arbol->nodo_raiz = NULL;
+
+	return removido;
 }
 
 void *abb_buscar(abb_t *arbol, void *elemento)
