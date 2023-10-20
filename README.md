@@ -22,13 +22,13 @@ make valgrind-chanutron
 ##  Funcionamiento
 El programa consiste en el uso de un **ABB**, este es un tipo de árbol con todas sus características explicadas en el punto teórico.
 
-La implementación que se utilizó para crear este tipo de árbol consiste de dos estructuras. Una principal, `abb_t`, la cual almacena la dirección de memoria del primer nodo, la cantidad de elementos y un comparador proporcionado por el usuario. Este comparador me permitía mantener cierto orden en el árbol.
+La implementación que se utilizó para crear este tipo de árbol consiste de dos estructuras. Una principal, `abb_t`, la cual almacena la dirección de memoria del primer nodo, la cantidad de elementos y un comparador proporcionado por el usuario, el cual me permitía mantener cierto orden en el árbol.
 
-La segunda estructura que se utilizó, `nodo_abb_t`, cumple la función de almacenar la dirección de memoria del elemento y del nodo de su izquierda y derecha. Es muy importante que si un nodo no tiene izquierda o derecha, que éste apunte a `NULL`. De este modo se sabrá si hay que seguir recorriendo por dicha rama.
+La segunda estructura que se utilizó, `nodo_abb_t`, cumple la función de almacenar la dirección de memoria del elemento, del nodo de su izquierda y derecha. Es muy importante que si un nodo no tiene izquierda o derecha, que éste apunte a `NULL`. De este modo se sabrá si hay que seguir recorriendo por dicha rama.
 
 El usuario puede almacenar los elementos que desee en el árbol, por dicho motivo es que hago uso de los `void*`, los cuales me permiten almacenar direcciones de memoria sin necesidad de saber que hay en dichas direcciones. Por este motivo es importante el comparador, pues yo no se como comparar los elementos que me ingresa el usuario.
 
-Sabemos que la naturaleza de un árbol es recursiva, por lo tanto las funciones que requieran recorrer el árbol fueron implementadas de forma recursiva. Al hacerlo de esta forma, cada llamado a función se concentra en un único nodo. Es decir, la primera vez que se llame a la función se creará un stackframe donde el problema es el primer nodo, luego cuando si se quiere ir por otra rama para acceder a otro nodo se llamará nuevamente a la función y se creará un nuevo stackframe donde el problema será otro nodo diferente al del primero.
+Sabemos que la naturaleza de un árbol es recursiva, por lo tanto las funciones que requieran recorrer el árbol fueron implementadas de forma recursiva. Al hacerlo de esta forma, cada llamado a función se concentra en un único nodo, es decir, la primera vez que se llame a la función se creará un stackframe donde el problema es el primer nodo, luego cuando si se quiere ir por otra rama para acceder a otro nodo se llamará nuevamente a la función y se creará un nuevo stackframe donde el problema será otro nodo diferente al del primero.
 
 ---
 <div align="center">
@@ -62,7 +62,7 @@ Para poder insertar un elemento en el árbol, se reserva un bloque de memoria en
 
 Una vez que se reservó dicho bloque, se recorre el árbol de manera recursiva y se va comparando el elemento a insertar con los elementos que ya se encuentran en el árbol. Siguiendo la lógica de que si el elemento a insertar es mayor, comparamos con los elementos del subárbol derecho y sino con el del izquierdo, así hasta llegar al final del árbol (posición donde debe insertarse el elemento). Una vez en dicha posición hacemos que el último nodo apunte, por derecha o izquierda, al nuevo nodo.
 
-Veamos que la complejidad de insertar un elemento es $O(log(n))$, pues en el peor de los casos, el elemento se debe insertar en el último nivel del árbol, entonces debería bajar por toda una rama hasta llegar al último nivel. Las operaciones de apuntar punteros son constantes $O(1)$ y no aportan al tamaño del problema.
+Veamos que la complejidad de insertar un elemento es $O(log(n))$, pues en el peor de los casos el elemento se debe insertar en el último nivel del árbol, entonces debería recorrer el arbol hasta las hojas. Y como sabemos, el recorriedo consiste en ir comparando con los elementos del arbol y quedandonos con una parte de este, por lo tanto estariamos partiendo el problema a la mitad luego de cada comparacion y es por eso que digo que su complejidad es $O(log(n))$. Las operaciones de apuntar punteros son constantes $O(1)$ y no aportan al tamaño del problema.
 
 ---
 <div align="center">
@@ -72,7 +72,7 @@ Veamos que la complejidad de insertar un elemento es $O(log(n))$, pues en el peo
 ---
 Para eliminar un elemento del árbol también se recorre de manera recursiva hasta encontrar el elemento que queremos eliminar y liberar la memoria que este ocupa. Durante este proceso se pueden dar dos casos diferentes:
 
-- ***1ro.*** Si se está eliminando un elemento con un hijo o ninguno, se procede eliminando el elemento y haciendo que el padre del que queremos eliminar apunte al hijo del que estamos eliminando. Como sabemos que tiene como máximo un hijo, y si no tiene apunta a `NULL`, entonces no estaríamos rompiendo el árbol.
+- ***1ro.*** Si se está eliminando un elemento con un hijo o ninguno, se procede haciendo que el padre del que queremos eliminar apunte al hijo del que estamos eliminando, como sabemos que tiene como máximo un hijo, y si no tiene apunta a `NULL`, entonces no estaríamos rompiendo el árbol. Por ultimo se libera la memoria del elemento que se queria eliminar.
 
 ---
 <div align="center">
@@ -80,7 +80,7 @@ Para eliminar un elemento del árbol también se recorre de manera recursiva has
 </div>
 
 ---
-- ***2do*** Si se esta eliminado un elemento con dos hijos, lo que se hace es buscar a partir del elemento que queremos eliminar el predecesor inorden, que vendría a ser la mayor cota menor. Una vez obtenemos dicho elemento, lo remplazamos por el cual queremos eliminar, haciendo que este apunte a los hijos del que vamos a eliminar y haciendo el padre de este apunte al predecesor. De esta manera se seguiría conservando el orden del árbol y no romperiamos el arbol. En el caso de que el predecesor tenga un hijo o ninguno, se procede como el primer caso.
+- ***2do.*** Si se esta eliminado un elemento con dos hijos, lo que se hace es buscar a partir del elemento que queremos eliminar el predecesor inorden, que vendría a ser la mayor cota menor. Una vez obtenemos dicho elemento, lo remplazamos por el cual queremos eliminar, haciendo que este apunte a los hijos del que vamos a eliminar y haciendo el padre de este apunte al predecesor. De esta manera se seguiría conservando el orden del árbol y no romperiamos el arbol. En el caso de que el predecesor tenga un hijo o ninguno, se procede como el primer caso.
 
 ---
 <div align="center">
@@ -103,13 +103,13 @@ Luego la expresion buscada nos queda de la siguiente manera:
 
 $\therefore T(n) = 1T(\frac{n}{2}) + O(1) = T(\frac{n}{2}) + O(1)$
 
-Veamos que $log_b(a) = log_2(1) = 0 => n⁰$ y ademas $f(n) = \kappa n⁰$. Por lo tanto como $n⁰ = f(n) => T(n) = O(n⁰*log(n)) = O(log(n))$, podemos concluir que eliminar un elemento con hijos o ninguno tiene una complejidad de $O(log(n))$.
+Veamos que $log_b(a) = log_2(1) = 0 => n⁰$ y ademas $f(n) = \kappa n⁰$. Por lo tanto como $n⁰ = f(n) => T(n) = O(n⁰*log(n)) = O(log(n))$, entonces podemos concluir que eliminar un elemento con hijos o ninguno tiene una complejidad de $O(log(n))$.
 
-Ahora veamos que para cuando queremos eliminar un elemento con dos hijos, el peor de los casos seria eliminar un elemento que esta en el medio del arbol. En este caso debemos recorrer por una rama hasta el nodo que queremos eliminar, esto seria una operacion $log(n)$, pues el arbol al estar balanceado, siempre que avanzamos por una rama estamos descartando la otra mitad del subarbol. Despues buscamos su predecesor inorden, lo cual seria otra operacion $log(n)$, por el mismo motivo que el anterior. Pero al final nos va a terminar quedando que $T(n) = log(n) + log(n) + O(1) = 2log(n) +O(1)$  que finalmente para **Big-O** esto es $O(log(n))$. Las operaciones de reapuntar punteros y liberar memoria son constantes $O(1)$ y no aportan al tamaño del problema.
+Ahora veamos que para cuando queremos eliminar un elemento con dos hijos, el peor de los casos seria eliminar un elemento que esta en el medio del arbol. En este caso debemos recorrer el arbol hasta el nodo que queremos eliminar, esto seria una operacion $log(n)$ pues el arbol al estar balanceado siempre que estamos descartando un camino, estariamos descartando un posible subarbol. Despues debemos buscar su predecesor inorden, lo cual seria otra operacion $log(n)$, porque estamos unicamente recorriendo una rama del arbol. Pero al final nos va a terminar quedando que $T(n) = log(n) + log(n) + O(1) = 2log(n) + O(1)$  que finalmente para **Big-O** esto es $O(log(n))$. Las operaciones de apuntar punteros y liberar memoria son constantes $O(1)$ y no aportan al tamaño del problema.
 
-Observemos que para ambos casos de eliminacion, si el arbol esta balanceado, la complejidad es $O(log(n))$.
+Observemos que para ambos casos de eliminacion la complejidad es $O(log(n))$.
 
-Para buscar un elemento de un árbol, debemos recorrer el árbol comparando el elemento que buscamos con el nodo sobre el cual estamos parados, si el que buscamos es mas grande nos quedamos con el subárbol de la derecha y sino el de la izquierda. En el caso de que el elemento que se esté buscando no exista, se devolverá `NULL`. Veamos que es muy similar al proceso de insertar y eliminar, solamente que hacemos cosas diferentes cuando llegamos al nodo que buscamos.
+Para buscar un elemento de un árbol, debemos recorrer el árbol comparando el elemento que buscamos con el nodo sobre el cual estamos parados, si el que buscamos es mas grande nos quedamos con el subárbol de la derecha y sino el de la izquierda. En el caso de que el elemento que se esté buscando no exista, se devolverá `NULL`. Veamos que es igual al proceso de recorrido insertar y eliminar.
 
 La complejidad de esta operacion es $O(log(n))$, pues en el peor de los casos, el elemento que buscamos no existe y tuve que recorrer el arbol hasta el ultimo nivel. Pero como cada vez que bajaba por una rama, estaba descartando otra, el problema se fue disminuyendo a la mitad. El analisis es muy similar al analisis de insertar de un elemento en el arbol.
 
@@ -136,7 +136,7 @@ El nodo principal del árbol se lo conoce como la `raíz`, por este nodo será d
 - Se puede dividir a un árbol según sus `niveles`, siendo el $1er$ nivel el de la `raíz` y aumentando hacia abajo.
 - La `altura` de un árbol se representa según la cantidad de niveles que este tiene y esta se puede calcular de la siguiente forma:
 
-  - Si la cantidad de elementos de un arbol se calcula como: $\zeta = 2^\psi-1$ siendo $\psi$ los niveles del arbol, entonces operando algebraicamente obtenemos que la cantidad de niveles se calcula como $log_2(\zeta+1)$.
+  - Si la cantidad de elementos de un arbol se calcula como: $\zeta = 2^\psi-1$ siendo $\psi$ los niveles del arbol, entonces operando algebraicamente obtenemos que la cantidad de niveles se calcula como $\psi = log_2(\zeta+1)$.
 
   $\zeta = 2^\psi-1 => \zeta+1 = 2^\psi => log_2(\zeta+1) = log_2(2^\psi) => log_2(\zeta+1) = \psi$
 
@@ -156,7 +156,9 @@ En mi caso solamente voy a explicar qué son los *Arboles N-Arios*, *Arboles Bin
 
 Antes de comenzar a explicar, quiero mencionar que son los recorridos. Estos, como dice el nombre, nos permite recorrer el árbol. Todos los recorridos comienzan en la `raíz` del árbol y constan de tres operaciones. Se dice que un nodo fue recorrido cuando se visita su contenido **(N)**, hijo derecho **(D)** e hijo izquierdo **(I)**. La complejidad que tienen todos los recorridos es $O(n)$, pues si en nuestro árbol tenemos $n$ elementos, debemos recorrerlos todos.
 
-Los arboles *N-Arios* permiten que un nodo tenga $n$ hijos. En este tipo de arbol, la complejidad de *insertar*, *eliminar* y *buscar* dependen. Dependen de la condiciones que me den acerca del arbol, es decir, alguna relacion entre los elementos para poder buscarlos. Pues de no ser asi, se podria insertar un elemento en cualquier posicion y buscarlo, ya sea para eliminarlo o para saber si existe, puede llegar a tener una complejidad $O(log(n))$. 
+Los arboles *N-Arios* permiten que un nodo tenga $n$ hijos. En este tipo de arbol, la complejidad de *insertar*, *eliminar* y *buscar* dependen. Dependen de la condiciones que me den acerca del arbol, es decir, alguna relacion entre los elementos para poder buscarlos. Pues de no ser asi, se podria insertar un elemento en cualquier posicion y buscarlo, ya sea para eliminarlo o para saber si existe, puede llegar a tener una complejidad $O(log(n))$ o $O(n)$.
+
+Los recorridos en este tipo de arbol dependen de la cantidad de nodos que se tengan, pues de eso dependeran las posibilidades de recorrido. Por ejemplo, si es un *Arbol Ternario* ($3$ hijos), podemos recorrerlo **ICND**, **DNCI**, etc..., siendo **C** el nodo del centro.
 
 ---
 <div align="center">
@@ -189,8 +191,6 @@ Existen en total una cantidad de $3!$ de recorridos, pero los que explicare ser�
 ---
 En cuanto a los **ABB**, estos son un tipo de *Arboles Binarios*, los cuales cumplen con un orden determinado. Cada nodo tiene una clave, con la cual se comparará con las claves de los otros nodos. Dicha comparación nos permite mantener un cierto orden a la hora de realizar operaciones con el árbol. 
 
-*(**COMENTARIO**: En este caso mencionare las complejidades que tienen las operaciones, pero para no repetir informacion, no explicare detalladamente como se obtienen dichas complejidades. Estas estan explicadas en el funcionamiento del programa)*
-
 ---
 <div align="center">
 <img width="25%" src="img/ABB.svg">
@@ -201,11 +201,10 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
 </font></div>
 
 ---
-- La operación de *insertar* un elemento en el árbol, consiste en que debemos recorrer el árbol e ir comparando el elemento que queremos insertar con las claves de los nodos del árbol. El resultado de dicha comparación determinará de qué lado del árbol debemos insertar el elemento. Dicha operacion tiene una complejidad $O(log(n))$
+- La operación de *insertar* un elemento en el árbol, consiste en que debemos recorrer el árbol e ir comparando el elemento que queremos insertar con las claves de los nodos del árbol. El resultado de dicha comparación determinará de qué lado del árbol debemos insertar el elemento. Dicha operacion tiene una complejidad $O(log(n))$, pues como explique en el funcionamiento del programa, cada vez que estamos bajando por una rama, estamos descartando otra rama con un posible subarbol por debajo.
 
   ---
   <div align="center">
-  <img width="50%" src="img/insertar.svg">
   </div>
 
   <div align="center"><font size="2">
@@ -213,11 +212,10 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   </font></div>
 
   ---
-- En cuanto a la operación de *eliminar* un elemento de un árbol, se pueden dar tres situaciones diferentes. A pesar de que se prodeca de otra forma, la complejidad total de eliminar es $O(log(n))$:
+- En cuanto a la operación de *eliminar* un elemento de un árbol, se pueden dar tres situaciones diferentes. A pesar de que se prodeca de otra forma, la complejidad total de eliminar es $O(log(n))$, podemos ver la explicacion de esto en el funcionamiento del programa.
 
   - Eliminar un nodo `hoja`.
   <div align="center">
-  <img width="50%" src="img/eliminar_hoja.svg">
   </div>
 
   <div align="center"><font size="2">Lo que se hace es buscar el elemento que se quiera eliminar y quitarlo del árbol</font></div>
@@ -225,7 +223,6 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   ---
   - Eliminar un nodo con un `hijo`.
   <div align="center">
-  <img width="50%" src="img/eliminar_con_hijo.svg">
   </div>
 
   <div align="center"><font size="2">Se busca el elemento recorriendo el árbol. Una vez que se lo encuentra se debe hacer que al anterior a el apunte al hijo del que queremos eliminar. Una vez hecho eso podemos eliminar el nodo</font></div>
@@ -239,7 +236,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   <div align="center"><font size="2">Una vez encontramos el elemento que queremos eliminar, debemos encontrar el predecesor o el sucesor de este. El predecesor sería la mayor cota menor y el sucesor la menor cota superior. Luego debemos reemplazar el elemento que queremos eliminar por el predecesor o el sucesor. En el caso de que tengan un hijo, se procede como cuando queremos eliminar un elemento con un hijo. Es muy importante que se tome una convención según cual tomamos y mantener dicha convención para siempre</font></div> 
 
   ---
-- Para *buscar* un elemento en el árbol debemos ir comparando el elemento que buscamos con la clave del nodo. Como en el proceso de insertar, esta comparación determina de qué lado del árbol debemos buscar el elemento. La complejidad de esta operacion es $O(log(n))$, al igual que la busqueda binaria.
+- Para *buscar* un elemento en el árbol debemos ir comparando el elemento que buscamos con la clave del nodo. Como en el proceso de insertar, esta comparación determina de qué lado del árbol debemos buscar el elemento. La complejidad de esta operacion es $O(log(n))$, al igual que la busqueda binaria. Tambien esta explicado el porque en el funcionamiento del programa.
 
 ---
 <div align="center">
@@ -249,7 +246,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
 ---
 - Los *recorridos* que se pueden hacer en un **ABB** son los mismo que los recorridos que los de un *Arbol Binario*.
 
-Para analizar la complejidad de las operaciones de un **ABB**, debemos tener en cuenta si el arbol esta balanceado o no. Que un árbol esté balanceado implica que este no se degenera en una lista. En el caso de que el árbol se degenere en una lista las complejidades de las operaciones pasarían a ser `O(n)`, pues no estaríamos partiendo el problema a la mitad, sino que descartando un elemento del arbol.
+Para analizar la complejidad de las operaciones de un **ABB**, debemos tener en cuenta si el arbol esta balanceado o no. Que un árbol esté balanceado implica que este no se degenera en una lista. En el caso de que el árbol se degenere en una lista las complejidades de las operaciones pasarían a ser $O(n)$, pues no estaríamos partiendo el problema a la mitad, sino que descartando un elemento del arbol.
 
 ---
   <div align="center">
