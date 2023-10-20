@@ -180,7 +180,7 @@ Existen en total una cantidad de $3!$ de recorridos, pero los que explicare ser�
 
 ---
 <div align="center">
-<img width="45%" src="img/arbol_binario_recorridos.svg">
+<img width="42%" src="img/arbol_binario_recorridos.svg">
 </div>
 
 ---
@@ -193,7 +193,7 @@ En cuanto a los **ABB**, estos son un tipo de *Arboles Binarios*, los cuales cum
 
 ---
 <div align="center">
-<img width="25%" src="img/ABB.svg">
+<img width="22%" src="img/ABB.svg">
 </div>
 
 <div align="center"><font size="2">
@@ -205,6 +205,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
 
   ---
   <div align="center">
+  <img width="50%" src="img/insertar.svg">
   </div>
 
   <div align="center"><font size="2">
@@ -216,6 +217,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
 
   - Eliminar un nodo `hoja`.
   <div align="center">
+  <img width="50%" src="img/eliminar.svg">
   </div>
 
   <div align="center"><font size="2">Lo que se hace es buscar el elemento que se quiera eliminar y quitarlo del árbol</font></div>
@@ -223,6 +225,7 @@ En el dibujo las claves mayores estarían en el subárbol derecho y las menores 
   ---
   - Eliminar un nodo con un `hijo`.
   <div align="center">
+  <img width="50%" src="img/eliminar_con_hijo.svg">
   </div>
 
   <div align="center"><font size="2">Se busca el elemento recorriendo el árbol. Una vez que se lo encuentra se debe hacer que al anterior a el apunte al hijo del que queremos eliminar. Una vez hecho eso podemos eliminar el nodo</font></div>
